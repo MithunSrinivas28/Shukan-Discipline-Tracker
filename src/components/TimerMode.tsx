@@ -114,7 +114,7 @@ export default function TimerMode({
       {/* Controls */}
       <div className="flex justify-center gap-3">
         {phase === "idle" ? (
-          <Button onClick={onStart} className="font-body px-8">
+          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-8">
             Start Focus
           </Button>
         ) : isRunning ? (
@@ -122,7 +122,7 @@ export default function TimerMode({
             Pause
           </Button>
         ) : (
-          <Button onClick={onStart} className="font-body px-8">
+          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-8">
             Resume
           </Button>
         )}
