@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ensureNotificationPermission, notifyStudyEvent } from "@/lib/notifications";
 
 interface StopwatchModeProps {
   userId: string;
