@@ -35,6 +35,32 @@ export default function StopwatchMode({
 }: StopwatchModeProps) {
   const { toast } = useToast();
 
+  // Fire a chime + browser notification every 60 minutes of elapsed stopwatch time.
+  const lastNotifiedHourRef = useRef(0);
+  useEffect(() => {
+    if (!isRunning) return;
+    const hoursElapsed = Math.floor(elapsed / 3600);
+    if (hoursElapsed > lastNotifiedHourRef.current) {
+      lastNotifiedHourRef.current = hoursElapsed;
+      notifyStudyEvent(
+        hoursElapsed === 1 ? "1 hour completed" : `${hoursElapsed} hours completed`,
+        "Keep going.",
+      );
+    }
+  }, [elapsed, isRunning]);
+
+  // Reset the hourly counter whenever the stopwatch returns to idle.
+  useEffect(() => {
+    if (phase === "idle" && elapsed === 0) {
+      lastNotifiedHourRef.current = 0;
+    }
+  }, [phase, elapsed]);
+
+  const handleStart = () => {
+    ensureNotificationPermission();
+    onStart();
+  };
+
   const handleStop = async () => {
     const totalSeconds = onStop();
     if (totalSeconds < 60) {
