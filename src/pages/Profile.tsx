@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import StreakGrid from "@/components/StreakGrid";
-import { Star, Calendar, TrendingUp, Clock, Trophy, Hash } from "lucide-react";
 
 interface ProfileData {
   username: string;
@@ -56,27 +55,45 @@ export default function Profile() {
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(weekAgo.getDate() - 7);
+    const prevWeekAgo = new Date(now);
+    prevWeekAgo.setDate(prevWeekAgo.getDate() - 14);
+
     const dayMap: Record<string, number> = {};
     let weekHours = 0;
+    let prevWeekHours = 0;
 
     for (const log of studyLogs) {
       const d = new Date(log.logged_at);
       const dateStr = d.toISOString().split("T")[0];
       dayMap[dateStr] = (dayMap[dateStr] ?? 0) + 1;
       if (d >= weekAgo) weekHours++;
+      else if (d >= prevWeekAgo) prevWeekHours++;
     }
 
-    // Add stopwatch session hours
-    const stopwatchSeconds = sessions
-      .filter((s) => s.mode === "stopwatch")
-      .reduce((sum, s) => sum + s.duration_seconds, 0);
     const totalSessionCount = sessions.reduce((sum, s) => sum + s.sessions_completed, 0);
-
     const bestDayHours = Object.values(dayMap).length > 0 ? Math.max(...Object.values(dayMap)) : 0;
     const totalDays = Object.keys(dayMap).length;
     const avgHours = totalDays > 0 ? studyLogs.length / totalDays : 0;
 
-    return { weekHours, bestDayHours, avgSessionLength: avgHours >= 1 ? `${avgHours.toFixed(1)}h` : "—", totalSessionCount, stopwatchHours: Math.floor(stopwatchSeconds / 3600) };
+    // Last 7 days array for sparkline
+    const last7: { date: string; hours: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      last7.push({ date: key, hours: dayMap[key] ?? 0 });
+    }
+
+    const delta = weekHours - prevWeekHours;
+    return {
+      weekHours,
+      prevWeekHours,
+      delta,
+      bestDayHours,
+      avgHours,
+      totalSessionCount,
+      last7,
+    };
   }, [studyLogs, sessions]);
 
   if (authLoading || !profile) {
@@ -87,41 +104,174 @@ export default function Profile() {
     );
   }
 
-  const stats = [
-    { icon: Star, label: "Total Points", value: profile.points.toString() },
-    { icon: Calendar, label: "This Week", value: `${analytics.weekHours}h` },
-    { icon: TrendingUp, label: "Best Day", value: `${analytics.bestDayHours}h` },
-    { icon: Clock, label: "Avg / Day", value: analytics.avgSessionLength },
-    { icon: Hash, label: "Sessions", value: analytics.totalSessionCount.toString() },
-    { icon: Trophy, label: "Rank", value: rank ? `#${rank}` : "—" },
-  ];
+  // Insight line — single calm sentence
+  const insight = (() => {
+    const { weekHours, delta, bestDayHours, avgHours } = analytics;
+    if (weekHours === 0) return "A quiet week. Begin again tomorrow — one hour is enough.";
+    if (delta > 2) return `You studied ${delta} more hours than last week. The rhythm is taking hold.`;
+    if (delta < -2) return `Last week was stronger by ${Math.abs(delta)} hours. Return gently.`;
+    if (bestDayHours >= 4) return `Your best day reached ${bestDayHours} hours — that depth of focus is rare.`;
+    if (avgHours >= 2) return `You're averaging ${avgHours.toFixed(1)} hours per active day. Consistency is becoming character.`;
+    return "Steady, quiet progress. Keep showing up.";
+  })();
+
+  // Sparkline geometry
+  const maxHr = Math.max(1, ...analytics.last7.map((d) => d.hours));
+  const W = 280;
+  const H = 64;
+  const points = analytics.last7.map((d, i) => {
+    const x = (i / (analytics.last7.length - 1)) * W;
+    const y = H - (d.hours / maxHr) * (H - 8) - 4;
+    return [x, y] as const;
+  });
+  const pathD = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const areaD = `${pathD} L${W},${H} L0,${H} Z`;
 
   return (
-    <div className="max-w-lg mx-auto py-8 px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-serif font-bold text-foreground">{profile.username}</h1>
-        <p className="text-4xl font-serif font-bold text-foreground mt-2">{profile.total_hours}h</p>
-        <p className="text-xs text-muted-foreground font-body">Total Study Time</p>
-      </div>
+    <div className="max-w-xl mx-auto py-14 px-5 space-y-14 animate-fade-in">
+      {/* Header — name + total */}
+      <header className="text-center space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
+          Personal report
+        </p>
+        <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight">
+          {profile.username}
+        </h1>
+        <div className="pt-2">
+          <p className="text-6xl font-serif font-bold text-foreground tabular-nums leading-none">
+            {profile.total_hours}
+            <span className="text-2xl text-muted-foreground font-body ml-1">h</span>
+          </p>
+          <p className="text-xs text-muted-foreground font-body mt-2 tracking-wide">
+            of focused study, all-time
+          </p>
+        </div>
+      </header>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {stats.map(({ icon: Icon, label, value }) => (
-          <div key={label} className="bg-card rounded-lg border border-border p-3 text-center">
-            <Icon size={14} className="mx-auto mb-1 text-muted-foreground" />
-            <p className="text-lg font-serif font-bold text-foreground">{value}</p>
-            <p className="text-[10px] text-muted-foreground font-body">{label}</p>
+      {/* Weekly summary — flowing line */}
+      <section className="space-y-2 text-center">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
+          This week
+        </p>
+        <p className="font-serif text-2xl font-semibold text-foreground">
+          {analytics.weekHours} hours
+          <span className="text-muted-foreground font-body text-base font-normal ml-2">
+            {analytics.delta === 0
+              ? "· steady"
+              : analytics.delta > 0
+              ? `· +${analytics.delta} vs last`
+              : `· ${analytics.delta} vs last`}
+          </span>
+        </p>
+      </section>
+
+      {/* Insight line */}
+      <section className="text-center px-2">
+        <p className="font-serif italic text-foreground/80 text-base leading-relaxed text-balance">
+          “{insight}”
+        </p>
+      </section>
+
+      {/* Trend graph — minimal sparkline */}
+      <section className="space-y-3">
+        <div className="flex items-end justify-between px-1">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
+            Last 7 days
+          </p>
+          <p className="text-[11px] text-muted-foreground font-body tabular-nums">
+            peak {maxHr}h
+          </p>
+        </div>
+        <div className="px-2 py-4">
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-20" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sparkFill" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={areaD} fill="url(#sparkFill)" />
+            <path
+              d={pathD}
+              fill="none"
+              stroke="hsl(var(--primary))"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {points.map(([x, y], i) => (
+              <circle
+                key={i}
+                cx={x}
+                cy={y}
+                r="2"
+                fill="hsl(var(--primary))"
+                className="transition-all"
+              />
+            ))}
+          </svg>
+          <div className="flex justify-between text-[10px] text-muted-foreground font-body mt-1 px-0.5">
+            {analytics.last7.map((d, i) => (
+              <span key={i} className="tabular-nums">
+                {new Date(d.date).toLocaleDateString(undefined, { weekday: "narrow" })}
+              </span>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      {/* Study Activity Grid */}
-      <div className="mb-8">
-        <h2 className="text-sm font-body text-muted-foreground mb-3 text-center">Study Activity</h2>
-        <div className="bg-card rounded-lg border border-border p-4 overflow-hidden">
+      {/* Key stats — inline, divider-separated, no boxes */}
+      <section>
+        <div className="flex items-center justify-between text-center divide-x divide-border/40">
+          <div className="flex-1 px-2">
+            <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
+              {profile.points}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
+              Points
+            </p>
+          </div>
+          <div className="flex-1 px-2">
+            <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
+              {analytics.bestDayHours}
+              <span className="text-sm text-muted-foreground font-body ml-0.5">h</span>
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
+              Best day
+            </p>
+          </div>
+          <div className="flex-1 px-2">
+            <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
+              {analytics.totalSessionCount}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
+              Sessions
+            </p>
+          </div>
+          <div className="flex-1 px-2">
+            <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
+              {rank ? `#${rank}` : "—"}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
+              Rank
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Activity heatmap — open canvas */}
+      <section className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body px-1">
+          Study activity
+        </p>
+        <div className="overflow-hidden">
           <StreakGrid logs={studyLogs} sessions={sessions} />
         </div>
-      </div>
+      </section>
+
+      <p className="text-center text-[11px] text-muted-foreground font-body pt-4">
+        Joined {new Date(profile.joined_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+      </p>
     </div>
   );
 }
