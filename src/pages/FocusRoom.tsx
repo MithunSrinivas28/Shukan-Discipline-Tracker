@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, Clock, CheckCircle2 } from "lucide-react";
+import { LogOut, Users, Clock, CheckCircle2, Video, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FocusSession {
@@ -339,6 +339,36 @@ export default function FocusRoom() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Study call */}
+      <div className="flex justify-center gap-2 mb-4">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => window.open("https://meet.google.com/wzm-igjw-asg", "_blank", "noopener,noreferrer")}
+          className="font-body"
+        >
+          <Video size={14} className="mr-1.5" />
+          Join Study Call
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={async () => {
+            const link = "https://meet.google.com/wzm-igjw-asg";
+            try {
+              await navigator.clipboard.writeText(link);
+              toast({ title: "Link copied", description: "Share it with your study partner." });
+            } catch {
+              toast({ title: "Couldn't copy", description: link, variant: "destructive" });
+            }
+          }}
+          className="font-body"
+        >
+          <Copy size={14} className="mr-1.5" />
+          Copy Link
+        </Button>
       </div>
 
       {/* Leave button */}
