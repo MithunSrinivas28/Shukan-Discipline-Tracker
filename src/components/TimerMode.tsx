@@ -72,40 +72,48 @@ export default function TimerMode({
   const progress = phase !== "idle" ? Math.max(0, 1 - remaining / (phase === "break" ? (intervalType === "pomodoro" ? 300 : 600) : focusDuration)) : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Interval selector */}
-      <div className="flex justify-center gap-3">
-        {(["pomodoro", "long"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => onSetIntervalType(t)}
-            disabled={isRunning}
-            className={`px-4 py-2 rounded-lg text-sm font-body border transition-colors ${
-              intervalType === t
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card border-border text-muted-foreground hover:border-primary/50"
-            } disabled:opacity-50`}
-          >
-            {t === "pomodoro" ? "25 / 5 min" : "50 / 10 min"}
-          </button>
-        ))}
+    <div className="space-y-7 animate-fade-in">
+      {/* Interval selector — pill segmented control */}
+      <div className="flex justify-center">
+        <div className="inline-flex gap-1 p-1 rounded-full bg-muted/60 border border-border/50">
+          {(["pomodoro", "long"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => onSetIntervalType(t)}
+              disabled={isRunning}
+              className={`px-4 py-1.5 rounded-full text-xs font-body transition-all duration-300 ${
+                intervalType === t
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              } disabled:opacity-50`}
+            >
+              {t === "pomodoro" ? "25 / 5" : "50 / 10"}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Timer display */}
+      {/* Timer display — hero */}
       <div className="text-center">
-        <p className="text-xs text-muted-foreground font-body mb-2 uppercase tracking-wide">
+        <p className="text-[10px] text-muted-foreground font-body mb-3 uppercase tracking-[0.3em]">
           {phase === "idle" ? "Ready" : phase === "focus" ? "Focus" : "Break"}
         </p>
-        <p className="text-6xl font-serif font-bold text-foreground tabular-nums tracking-tight">
-          {phase === "idle" ? formatTime(focusDuration) : formatTime(remaining)}
-        </p>
+        <div
+          className={`relative mx-auto inline-block rounded-full px-2 py-1 transition-all duration-500 ${
+            isRunning && phase === "focus" ? "animate-timer-glow" : ""
+          }`}
+        >
+          <p className="text-7xl md:text-8xl font-serif font-bold text-foreground tabular-nums tracking-tight leading-none">
+            {phase === "idle" ? formatTime(focusDuration) : formatTime(remaining)}
+          </p>
+        </div>
       </div>
 
       {/* Progress bar */}
       {phase !== "idle" && (
-        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-muted/60 rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-primary to-sakura-glow rounded-full transition-all duration-700 ease-out"
             style={{ width: `${progress * 100}%` }}
           />
         </div>
@@ -114,15 +122,15 @@ export default function TimerMode({
       {/* Controls */}
       <div className="flex justify-center gap-3">
         {phase === "idle" ? (
-          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-8">
+          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-10 btn-press">
             Start Focus
           </Button>
         ) : isRunning ? (
-          <Button onClick={onPause} variant="outline" className="font-body px-8">
+          <Button onClick={onPause} variant="outline" className="font-body px-10 btn-press">
             Pause
           </Button>
         ) : (
-          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-8">
+          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-10 btn-press">
             Resume
           </Button>
         )}
@@ -141,8 +149,8 @@ export default function TimerMode({
       )}
 
       {/* Sessions count */}
-      <p className="text-center text-sm text-muted-foreground font-body">
-        Sessions today: <span className="font-serif font-bold text-foreground">{sessionsCompleted}</span>
+      <p className="text-center text-xs text-muted-foreground font-body tracking-wide">
+        Sessions today · <span className="font-serif font-bold text-foreground">{sessionsCompleted}</span>
       </p>
     </div>
   );
