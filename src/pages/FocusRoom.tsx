@@ -341,6 +341,36 @@ export default function FocusRoom() {
         </div>
       </div>
 
+      {/* Study call */}
+      <div className="flex justify-center gap-2 mb-4">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => window.open("https://meet.google.com/wzm-igjw-asg", "_blank", "noopener,noreferrer")}
+          className="font-body"
+        >
+          <Video size={14} className="mr-1.5" />
+          Join Study Call
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={async () => {
+            const link = "https://meet.google.com/wzm-igjw-asg";
+            try {
+              await navigator.clipboard.writeText(link);
+              toast({ title: "Link copied", description: "Share it with your study partner." });
+            } catch {
+              toast({ title: "Couldn't copy", description: link, variant: "destructive" });
+            }
+          }}
+          className="font-body"
+        >
+          <Copy size={14} className="mr-1.5" />
+          Copy Link
+        </Button>
+      </div>
+
       {/* Leave button */}
       <div className="flex justify-center">
         <Button
