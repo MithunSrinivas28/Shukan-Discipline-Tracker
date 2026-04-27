@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, Clock, CheckCircle2 } from "lucide-react";
+import { LogOut, Users, Clock, CheckCircle2, Video, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FocusSession {
