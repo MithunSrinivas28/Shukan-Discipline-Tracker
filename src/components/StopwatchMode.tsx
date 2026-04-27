@@ -116,7 +116,7 @@ export default function StopwatchMode({
           </>
         ) : (
           <>
-            <Button onClick={onStart} className="font-body px-6">
+            <Button onClick={handleStart} className="font-body px-6">
               Resume
             </Button>
             <Button onClick={handleStop} variant="secondary" className="font-body px-6">
