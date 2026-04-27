@@ -101,12 +101,42 @@ export default {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in-soft": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.96)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "slide-in-right": {
+          "0%": { opacity: "0", transform: "translateX(12px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "timer-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0.0), 0 8px 40px -16px hsl(var(--primary) / 0.25)" },
+          "50%": { boxShadow: "0 0 0 8px hsl(var(--primary) / 0.06), 0 12px 60px -20px hsl(var(--primary) / 0.45)" },
+        },
+        "task-in": {
+          "0%": { opacity: "0", transform: "translateX(-6px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-sakura": "pulse-sakura 2s ease-in-out infinite",
         "float-up": "float-up 0.6s ease-out forwards",
+        "fade-in": "fade-in 0.4s ease-out forwards",
+        "fade-in-soft": "fade-in-soft 0.5s ease-out forwards",
+        "scale-in": "scale-in 0.3s ease-out forwards",
+        "slide-in-right": "slide-in-right 0.3s ease-out forwards",
+        "timer-glow": "timer-glow 3.2s ease-in-out infinite",
+        "task-in": "task-in 0.3s ease-out forwards",
       },
     },
   },
