@@ -48,6 +48,8 @@ export default function TimerMode({
       if (phase === "focus" && !loggedRef.current) {
         loggedRef.current = true;
         const minutesEarned = Math.round(focusDuration / 60);
+        // Notify user that the focus session ended.
+        notifyStudyEvent("Focus session complete", "Take a break.");
         // Log completed focus session & update profile minutes
         Promise.all([
           supabase.from("study_sessions").insert({
