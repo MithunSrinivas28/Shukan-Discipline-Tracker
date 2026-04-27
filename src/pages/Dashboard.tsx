@@ -74,10 +74,10 @@ export default function Dashboard() {
 
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-5 space-y-12">
+    <div className="max-w-xl mx-auto py-12 px-5 space-y-14 animate-fade-in">
       {/* Welcome */}
-      <header className="text-center space-y-2">
-        <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground font-body">
+      <header className="text-center space-y-1.5">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
           Welcome back
         </p>
         <h1 className="text-4xl font-serif font-bold text-foreground tracking-tight leading-none">
@@ -85,57 +85,16 @@ export default function Dashboard() {
         </h1>
       </header>
 
-      {/* Start Study Together */}
-      <section>
-        <button
-          onClick={() => setShowFocusRooms((v) => !v)}
-          className="group w-full rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 px-6 py-4 text-left transition-all duration-300 hover:border-primary/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.25)]"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-serif font-semibold text-foreground text-sm tracking-wide">
-                🤝 Start Study Together
-              </p>
-              <p className="text-xs text-muted-foreground font-body mt-1">
-                Invite a friend to a shared focus session
-              </p>
-            </div>
-            <span className="text-muted-foreground text-xs transition-transform group-hover:translate-x-0.5">
-              {showFocusRooms ? "Hide" : "Open"} →
-            </span>
-          </div>
-        </button>
-
-        {showFocusRooms && (
-          <div className="mt-4">
-            <FocusRooms />
-          </div>
-        )}
-      </section>
-
-      {/* Sakura Tree — open canvas, no card */}
-      <section>
-        <SakuraTree totalHours={profile.total_hours} totalSessions={totalSessions} />
-      </section>
-
-      {/* Focus workspace */}
-      <section className="space-y-5">
-        <div className="flex items-end justify-between px-1">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground font-body">
-              Focus
-            </p>
-            <h2 className="font-serif text-xl font-semibold text-foreground mt-0.5">
-              Begin a session
-            </h2>
-          </div>
-          <div className="flex gap-1.5 p-1 rounded-full bg-muted/60 border border-border/60">
+      {/* Focus workspace — HERO */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-center">
+          <div className="inline-flex gap-1 p-1 rounded-full bg-muted/50 border border-border/40">
             {(["timer", "stopwatch"] as StudyMode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => timer.setMode(m)}
                 disabled={timer.isRunning}
-                className={`px-4 py-1.5 rounded-full text-xs font-body transition-all ${
+                className={`px-5 py-1.5 rounded-full text-xs font-body transition-all duration-300 ${
                   timer.mode === m
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -147,7 +106,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-card/60 border border-border/60 backdrop-blur-sm p-7 shadow-[0_2px_20px_-8px_hsl(var(--foreground)/0.08)] transition-all">
+        <div className="surface p-9 hover-lift">
           {timer.mode === "timer" ? (
             <TimerMode
               userId={user!.id}
@@ -179,6 +138,32 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* Today — soft inline stats (secondary) */}
+      <section className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body px-1">
+          Today
+        </p>
+        <div className="grid grid-cols-2 divide-x divide-border/40 surface-soft overflow-hidden">
+          <div className="text-center py-5">
+            <p className="text-3xl font-serif font-bold text-foreground tabular-nums">
+              {todayTimerSessions}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
+              Timer Sessions
+            </p>
+          </div>
+          <div className="text-center py-5">
+            <p className="text-3xl font-serif font-bold text-foreground tabular-nums">
+              {todayStopwatchMinutes}
+              <span className="text-lg text-muted-foreground font-body ml-0.5">m</span>
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
+              Stopwatch Time
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Daily Commitment */}
       <section>
         <DailyCommitment
@@ -189,35 +174,42 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Today — soft inline stats */}
-      <section className="space-y-3">
-        <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground font-body px-1">
-          Today
-        </p>
-        <div className="grid grid-cols-2 divide-x divide-border/60 rounded-2xl bg-muted/40 border border-border/60 overflow-hidden">
-          <div className="text-center py-5">
-            <p className="text-3xl font-serif font-bold text-foreground tabular-nums">
-              {todayTimerSessions}
-            </p>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-body mt-1">
-              Timer Sessions
-            </p>
+      {/* Sakura Tree — open canvas */}
+      <section>
+        <SakuraTree totalHours={profile.total_hours} totalSessions={totalSessions} />
+      </section>
+
+      {/* Start Study Together */}
+      <section>
+        <button
+          onClick={() => setShowFocusRooms((v) => !v)}
+          className="group w-full rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 px-6 py-4 text-left transition-all duration-300 hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-[0_10px_40px_-16px_hsl(var(--primary)/0.35)]"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-serif font-semibold text-foreground text-sm tracking-wide">
+                🤝 Start Study Together
+              </p>
+              <p className="text-xs text-muted-foreground font-body mt-1">
+                Invite a friend to a shared focus session
+              </p>
+            </div>
+            <span className="text-muted-foreground text-xs transition-transform group-hover:translate-x-1">
+              {showFocusRooms ? "Hide" : "Open"} →
+            </span>
           </div>
-          <div className="text-center py-5">
-            <p className="text-3xl font-serif font-bold text-foreground tabular-nums">
-              {todayStopwatchMinutes}
-              <span className="text-lg text-muted-foreground font-body ml-0.5">m</span>
-            </p>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-body mt-1">
-              Stopwatch Time
-            </p>
+        </button>
+
+        {showFocusRooms && (
+          <div className="mt-4 animate-fade-in">
+            <FocusRooms />
           </div>
-        </div>
+        )}
       </section>
 
       {/* Studying with someone? */}
       <section className="text-center pt-2">
-        <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground font-body mb-3">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body mb-3">
           Studying with a friend?
         </p>
         <StudyCallLinks />
