@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { IntervalType, TimerPhase } from "@/hooks/useTimerState";
+import { ensureNotificationPermission, notifyStudyEvent } from "@/lib/notifications";
 
 interface TimerModeProps {
   userId: string;
@@ -47,6 +48,8 @@ export default function TimerMode({
       if (phase === "focus" && !loggedRef.current) {
         loggedRef.current = true;
         const minutesEarned = Math.round(focusDuration / 60);
+        // Notify user that the focus session ended.
+        notifyStudyEvent("Focus session complete", "Take a break.");
         // Log completed focus session & update profile minutes
         Promise.all([
           supabase.from("study_sessions").insert({
@@ -111,7 +114,7 @@ export default function TimerMode({
       {/* Controls */}
       <div className="flex justify-center gap-3">
         {phase === "idle" ? (
-          <Button onClick={onStart} className="font-body px-8">
+          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-8">
             Start Focus
           </Button>
         ) : isRunning ? (
@@ -119,7 +122,7 @@ export default function TimerMode({
             Pause
           </Button>
         ) : (
-          <Button onClick={onStart} className="font-body px-8">
+          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-8">
             Resume
           </Button>
         )}

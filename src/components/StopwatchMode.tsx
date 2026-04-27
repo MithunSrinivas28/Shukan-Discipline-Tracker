@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ensureNotificationPermission, notifyStudyEvent } from "@/lib/notifications";
 
 interface StopwatchModeProps {
   userId: string;
@@ -32,6 +34,32 @@ export default function StopwatchMode({
   onSessionLogged,
 }: StopwatchModeProps) {
   const { toast } = useToast();
+
+  // Fire a chime + browser notification every 60 minutes of elapsed stopwatch time.
+  const lastNotifiedHourRef = useRef(0);
+  useEffect(() => {
+    if (!isRunning) return;
+    const hoursElapsed = Math.floor(elapsed / 3600);
+    if (hoursElapsed > lastNotifiedHourRef.current) {
+      lastNotifiedHourRef.current = hoursElapsed;
+      notifyStudyEvent(
+        hoursElapsed === 1 ? "1 hour completed" : `${hoursElapsed} hours completed`,
+        "Keep going.",
+      );
+    }
+  }, [elapsed, isRunning]);
+
+  // Reset the hourly counter whenever the stopwatch returns to idle.
+  useEffect(() => {
+    if (phase === "idle" && elapsed === 0) {
+      lastNotifiedHourRef.current = 0;
+    }
+  }, [phase, elapsed]);
+
+  const handleStart = () => {
+    ensureNotificationPermission();
+    onStart();
+  };
 
   const handleStop = async () => {
     const totalSeconds = onStop();
@@ -74,7 +102,7 @@ export default function StopwatchMode({
       {/* Controls */}
       <div className="flex justify-center gap-3">
         {!hasStarted ? (
-          <Button onClick={onStart} className="font-body px-8">
+          <Button onClick={handleStart} className="font-body px-8">
             Start Studying
           </Button>
         ) : isRunning ? (
@@ -88,7 +116,7 @@ export default function StopwatchMode({
           </>
         ) : (
           <>
-            <Button onClick={onStart} className="font-body px-6">
+            <Button onClick={handleStart} className="font-body px-6">
               Resume
             </Button>
             <Button onClick={handleStop} variant="secondary" className="font-body px-6">
