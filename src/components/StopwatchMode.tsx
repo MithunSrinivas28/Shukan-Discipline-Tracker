@@ -102,7 +102,7 @@ export default function StopwatchMode({
       {/* Controls */}
       <div className="flex justify-center gap-3">
         {!hasStarted ? (
-          <Button onClick={onStart} className="font-body px-8">
+          <Button onClick={handleStart} className="font-body px-8">
             Start Studying
           </Button>
         ) : isRunning ? (
