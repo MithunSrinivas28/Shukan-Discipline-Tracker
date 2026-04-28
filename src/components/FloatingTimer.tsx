@@ -29,7 +29,7 @@ export default function FloatingTimer({ cooldown, mode, elapsed = 0, phase, isRu
     return (
       <button
         onClick={() => setMinimized(false)}
-        className="fixed bottom-6 right-6 z-50 bg-card border border-border rounded-full w-12 h-12 flex items-center justify-center shadow-lg text-primary font-serif font-bold text-sm"
+        className="fixed bottom-6 right-6 z-50 bg-card/80 backdrop-blur-md border border-border/50 rounded-full w-12 h-12 flex items-center justify-center shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.35)] text-primary font-serif font-bold text-sm transition-all duration-300 hover:scale-110 hover:shadow-[0_10px_40px_-8px_hsl(var(--primary)/0.55)] animate-scale-in"
       >
         {mode === "stopwatch" ? "⏱" : `${Math.floor((mode === "timer" ? cooldown : elapsed) / 60)}m`}
       </button>
@@ -47,17 +47,22 @@ export default function FloatingTimer({ cooldown, mode, elapsed = 0, phase, isRu
     : "Cooldown";
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-float-up">
-      <div className="bg-card border border-border rounded-2xl shadow-lg px-5 py-4 flex items-center gap-4 min-w-[180px]">
-        <div>
-          <p className="text-lg font-serif font-bold text-foreground tabular-nums tracking-tight">
+    <div className="fixed bottom-6 right-6 z-50 animate-slide-in-right">
+      <div
+        className={`bg-card/75 backdrop-blur-xl border border-border/50 rounded-2xl px-5 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_20px_60px_-20px_hsl(var(--foreground)/0.25)] transition-all duration-300 hover:-translate-y-0.5 ${
+          isRunning && phase === "focus" ? "ring-1 ring-primary/20" : ""
+        }`}
+      >
+        <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-primary animate-pulse-sakura" : "bg-muted-foreground/40"}`} />
+        <div className="flex-1">
+          <p className="text-lg font-serif font-bold text-foreground tabular-nums tracking-tight leading-none">
             {displayTime}
           </p>
-          <p className="text-[11px] text-muted-foreground font-body">{label}</p>
+          <p className="text-[11px] text-muted-foreground font-body mt-1 uppercase tracking-wider">{label}</p>
         </div>
         <button
           onClick={() => setMinimized(true)}
-          className="text-muted-foreground hover:text-foreground text-xs font-body"
+          className="text-muted-foreground hover:text-foreground text-xs font-body transition-colors"
         >
           ✕
         </button>
