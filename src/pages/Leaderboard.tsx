@@ -66,27 +66,32 @@ export default function Leaderboard() {
   const leaderBP = entries.length > 0 ? entries[0].battle_points : 0;
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-16">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Leaderboard</h1>
-        <p className="font-body text-muted-foreground text-sm">Ranked by Real Work</p>
+    <div className="container mx-auto max-w-2xl px-4 py-16 animate-fade-in">
+      <div className="text-center mb-10 space-y-2">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
+          Standings
+        </p>
+        <h1 className="text-4xl font-serif font-bold text-foreground tracking-tight">Leaderboard</h1>
+        <p className="font-body text-muted-foreground text-sm italic">Ranked by Real Work</p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex justify-center gap-3 mb-8">
-        {(["study", "battle"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-body border transition-colors ${
-              tab === t
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card border-border text-muted-foreground hover:border-primary/50"
-            }`}
-          >
-            {t === "study" ? "Solo Study" : "Study Together"}
-          </button>
-        ))}
+      {/* Tabs — pill segmented control */}
+      <div className="flex justify-center mb-10">
+        <div className="inline-flex gap-1 p-1 rounded-full bg-muted/50 border border-border/40 backdrop-blur-sm">
+          {(["study", "battle"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-5 py-1.5 rounded-full text-xs font-body transition-all duration-300 ${
+                tab === t
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t === "study" ? "Solo Study" : "Study Together"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {entries.length === 0 ? (
