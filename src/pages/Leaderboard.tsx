@@ -113,14 +113,14 @@ export default function Leaderboard() {
               return (
                 <div
                   key={entry.username}
-                  className={`flex items-center gap-4 rounded-lg px-5 animate-float-up transition-colors ${
+                  className={`flex items-center gap-4 rounded-2xl px-5 animate-fade-in transition-all duration-400 hover:-translate-y-0.5 ${
                     rank === 1 ? "py-5" : "py-4"
                   } ${
                     isCurrentUser
-                      ? "bg-primary/10 border-2 border-primary/30"
-                      : "bg-card border border-border"
-                  }`}
-                  style={{ animationDelay: `${i * 50}ms` }}
+                      ? "bg-primary/8 border border-primary/30 shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.4)]"
+                      : "bg-card/40 border border-border/40 backdrop-blur-sm hover:bg-card/70 hover:border-border/70 hover:shadow-[0_12px_40px_-16px_hsl(var(--foreground)/0.18)]"
+                  } ${rank === 1 ? "ring-1 ring-primary/15" : ""}`}
+                  style={{ animationDelay: `${i * 40}ms`, opacity: 0, animationFillMode: "forwards" }}
                 >
                   <div className="w-10 flex items-center justify-center">
                     {config ? (
@@ -163,14 +163,14 @@ export default function Leaderboard() {
             return (
               <div
                 key={entry.username}
-                className={`flex items-center gap-4 rounded-lg px-5 animate-float-up transition-colors ${
+                className={`flex items-center gap-4 rounded-2xl px-5 animate-fade-in transition-all duration-400 hover:-translate-y-0.5 ${
                   rank === 1 ? "py-5" : "py-4"
                 } ${
                   isCurrentUser
-                    ? "bg-primary/10 border-2 border-primary/30"
-                    : "bg-card border border-border"
-                }`}
-                style={{ animationDelay: `${i * 50}ms` }}
+                    ? "bg-primary/8 border border-primary/30 shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.4)]"
+                    : "bg-card/40 border border-border/40 backdrop-blur-sm hover:bg-card/70 hover:border-border/70 hover:shadow-[0_12px_40px_-16px_hsl(var(--foreground)/0.18)]"
+                } ${rank === 1 ? "ring-1 ring-primary/15" : ""}`}
+                style={{ animationDelay: `${i * 40}ms`, opacity: 0, animationFillMode: "forwards" }}
               >
                 <div className="w-10 flex items-center justify-center">
                   {config ? (
