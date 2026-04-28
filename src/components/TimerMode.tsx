@@ -95,25 +95,34 @@ export default function TimerMode({
 
       {/* Timer display — hero */}
       <div className="text-center">
-        <p className="text-[10px] text-muted-foreground font-body mb-3 uppercase tracking-[0.3em]">
+        <p className="text-[10px] text-muted-foreground font-body mb-3 uppercase tracking-[0.3em] transition-opacity">
           {phase === "idle" ? "Ready" : phase === "focus" ? "Focus" : "Break"}
         </p>
-        <div
-          className={`relative mx-auto inline-block rounded-full px-2 py-1 transition-all duration-500 ${
-            isRunning && phase === "focus" ? "animate-timer-glow" : ""
-          }`}
-        >
-          <p className="text-7xl md:text-8xl font-serif font-bold text-foreground tabular-nums tracking-tight leading-none">
-            {phase === "idle" ? formatTime(focusDuration) : formatTime(remaining)}
-          </p>
+        <div className="relative mx-auto inline-block">
+          {/* Ambient glow halo while focusing */}
+          {isRunning && phase === "focus" && (
+            <>
+              <div className="absolute inset-0 -m-12 rounded-full bg-primary/20 blur-3xl animate-pulse-sakura pointer-events-none" />
+              <div className="absolute inset-0 -m-6 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+            </>
+          )}
+          <div
+            className={`relative rounded-full px-2 py-1 transition-all duration-700 ${
+              isRunning && phase === "focus" ? "animate-timer-glow" : ""
+            }`}
+          >
+            <p className="text-7xl md:text-8xl font-serif font-bold text-foreground tabular-nums tracking-tight leading-none">
+              {phase === "idle" ? formatTime(focusDuration) : formatTime(remaining)}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Progress bar */}
       {phase !== "idle" && (
-        <div className="w-full h-1 bg-muted/60 rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-muted/50 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary to-sakura-glow rounded-full transition-all duration-700 ease-out"
+            className="h-full bg-gradient-to-r from-primary via-sakura-glow to-primary rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
             style={{ width: `${progress * 100}%` }}
           />
         </div>
