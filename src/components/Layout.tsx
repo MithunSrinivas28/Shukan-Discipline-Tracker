@@ -37,16 +37,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const showFloatingTimer = timer.isRunning && location.pathname !== "/dashboard";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-border">
+    <div className="min-h-screen flex flex-col">
+      <header className="sticky top-0 z-30 bg-background/70 backdrop-blur-xl border-b border-border/40">
         <nav className="container mx-auto px-4 py-4 flex items-center justify-between max-w-4xl">
-          <Link to="/" className="font-serif text-2xl font-bold tracking-tight text-foreground">
+          <Link
+            to="/"
+            className="font-serif text-2xl font-bold tracking-tight text-foreground transition-opacity hover:opacity-80"
+          >
             習慣 <span className="text-sm font-body font-normal text-muted-foreground ml-1">Shūkan</span>
           </Link>
           <div className="flex items-center gap-5 text-sm font-body">
             <Link
               to="/leaderboard"
-              className={`transition-colors hover:text-foreground ${
+              data-active={isActive("/leaderboard")}
+              className={`nav-underline transition-colors hover:text-foreground ${
                 isActive("/leaderboard") ? "text-foreground font-medium" : "text-muted-foreground"
               }`}
             >
@@ -56,7 +60,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <>
                 <Link
                   to="/dashboard"
-                  className={`transition-colors hover:text-foreground ${
+                  data-active={isActive("/dashboard")}
+                  className={`nav-underline transition-colors hover:text-foreground ${
                     isActive("/dashboard") ? "text-foreground font-medium" : "text-muted-foreground"
                   }`}
                 >
@@ -64,7 +69,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
                 <Link
                   to="/profile"
-                  className={`transition-colors hover:text-foreground ${
+                  data-active={isActive("/profile")}
+                  className={`nav-underline transition-colors hover:text-foreground ${
                     isActive("/profile") ? "text-foreground font-medium" : "text-muted-foreground"
                   }`}
                 >
@@ -80,7 +86,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             ) : (
               <Link
                 to="/auth"
-                className={`transition-colors hover:text-foreground ${
+                data-active={isActive("/auth")}
+                className={`nav-underline transition-colors hover:text-foreground ${
                   isActive("/auth") ? "text-foreground font-medium" : "text-muted-foreground"
                 }`}
               >
@@ -92,7 +99,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <button
               onClick={toggleDark}
               aria-label="Toggle dark mode"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 hover:rotate-12"
             >
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -100,11 +107,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
 
-      <main className="flex-1">
+      <main key={location.pathname} className="flex-1 animate-fade-in-soft">
         {children}
       </main>
 
-      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground font-body">
+      <footer className="py-8 text-center text-xs text-muted-foreground/70 font-body tracking-wider">
         <p>一日一歩 — One step each day</p>
       </footer>
 

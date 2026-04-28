@@ -130,19 +130,21 @@ export default function Profile() {
   return (
     <div className="max-w-xl mx-auto py-14 px-5 space-y-14 animate-fade-in">
       {/* Header — name + total */}
-      <header className="text-center space-y-3">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
+      <header className="text-center space-y-3 relative">
+        {/* Soft glow behind hero */}
+        <div className="absolute inset-x-0 -top-8 mx-auto h-40 w-40 rounded-full bg-primary/15 blur-3xl pointer-events-none -z-10" />
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body animate-fade-in">
           Personal report
         </p>
-        <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight">
+        <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight animate-fade-in stagger-1" style={{ opacity: 0, animationFillMode: "forwards" }}>
           {profile.username}
         </h1>
-        <div className="pt-2">
-          <p className="text-6xl font-serif font-bold text-foreground tabular-nums leading-none">
+        <div className="pt-2 animate-fade-in stagger-2" style={{ opacity: 0, animationFillMode: "forwards" }}>
+          <p className="text-7xl font-serif font-bold tabular-nums leading-none bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
             {profile.total_hours}
             <span className="text-2xl text-muted-foreground font-body ml-1">h</span>
           </p>
-          <p className="text-xs text-muted-foreground font-body mt-2 tracking-wide">
+          <p className="text-xs text-muted-foreground font-body mt-3 tracking-[0.15em]">
             of focused study, all-time
           </p>
         </div>

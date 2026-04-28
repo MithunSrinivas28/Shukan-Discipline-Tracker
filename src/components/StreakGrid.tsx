@@ -98,28 +98,29 @@ export default function StreakGrid({ logs, sessions = [], weeks = 20 }: StreakGr
 
   const getColor = (minutes: number) => {
     if (minutes < 0) return "bg-transparent";
-    if (minutes === 0) return "bg-muted";
-    if (minutes <= 30) return "bg-primary/30";
-    if (minutes <= 60) return "bg-primary/50";
-    if (minutes <= 120) return "bg-primary/75";
-    return "bg-primary";
+    if (minutes === 0) return "bg-muted/60";
+    if (minutes <= 30) return "bg-primary/25";
+    if (minutes <= 60) return "bg-primary/45";
+    if (minutes <= 120) return "bg-primary/70";
+    if (minutes <= 240) return "bg-primary/90";
+    return "bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]";
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center gap-6 text-xs font-body text-muted-foreground">
-        <span>🔥 Current: <strong className="text-foreground">{currentStreak}d</strong></span>
-        <span>🏆 Longest: <strong className="text-foreground">{longestStreak}d</strong></span>
+        <span className="transition-colors">🔥 Current: <strong className="text-foreground tabular-nums">{currentStreak}d</strong></span>
+        <span className="transition-colors">🏆 Longest: <strong className="text-foreground tabular-nums">{longestStreak}d</strong></span>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto -mx-1 px-1">
         <div className="inline-block">
           {/* Month labels */}
           <div className="flex mb-1 ml-0" style={{ gap: "3px" }}>
             {grid.map((_, colIdx) => {
               const label = monthLabels.find((l) => l.colIndex === colIdx);
               return (
-                <div key={colIdx} className="text-[10px] text-muted-foreground font-body" style={{ width: 12, minWidth: 12 }}>
+                <div key={colIdx} className="text-[10px] text-muted-foreground/70 font-body tracking-wide" style={{ width: 12, minWidth: 12 }}>
                   {label?.label ?? ""}
                 </div>
               );
@@ -137,14 +138,14 @@ export default function StreakGrid({ logs, sessions = [], weeks = 20 }: StreakGr
                   <Tooltip key={colIdx}>
                     <TooltipTrigger asChild>
                       <div
-                        className={`rounded-[2px] ${getColor(cell.minutes)} transition-colors cursor-default`}
+                        className={`heatmap-cell rounded-[3px] ${getColor(cell.minutes)} cursor-default`}
                         style={{ width: 12, height: 12, minWidth: 12 }}
                       />
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs font-body">
+                    <TooltipContent side="top" className="text-xs font-body bg-card/95 backdrop-blur-md border-border/60">
                       <p className="font-medium">{cell.date.toLocaleDateString()}</p>
-                      <p>{cell.minutes} min studied</p>
-                      <p>{cell.sessionCount} session{cell.sessionCount !== 1 ? "s" : ""}</p>
+                      <p className="text-muted-foreground">{cell.minutes} min studied</p>
+                      <p className="text-muted-foreground">{cell.sessionCount} session{cell.sessionCount !== 1 ? "s" : ""}</p>
                     </TooltipContent>
                   </Tooltip>
                 );
@@ -152,13 +153,13 @@ export default function StreakGrid({ logs, sessions = [], weeks = 20 }: StreakGr
             </div>
           ))}
           {/* Legend */}
-          <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground font-body justify-end">
+          <div className="flex items-center gap-1 mt-3 text-[10px] text-muted-foreground/70 font-body justify-end tracking-wide">
             <span>Less</span>
-            <div className="w-3 h-3 rounded-[2px] bg-muted" />
-            <div className="w-3 h-3 rounded-[2px] bg-primary/30" />
-            <div className="w-3 h-3 rounded-[2px] bg-primary/50" />
-            <div className="w-3 h-3 rounded-[2px] bg-primary/75" />
-            <div className="w-3 h-3 rounded-[2px] bg-primary" />
+            <div className="w-3 h-3 rounded-[3px] bg-muted/60" />
+            <div className="w-3 h-3 rounded-[3px] bg-primary/25" />
+            <div className="w-3 h-3 rounded-[3px] bg-primary/45" />
+            <div className="w-3 h-3 rounded-[3px] bg-primary/70" />
+            <div className="w-3 h-3 rounded-[3px] bg-primary" />
             <span>More</span>
           </div>
         </div>
