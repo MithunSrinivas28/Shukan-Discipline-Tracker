@@ -6,7 +6,7 @@ import StreakGrid from "@/components/StreakGrid";
 
 interface ProfileData {
   username: string;
-  total_hours: number;
+  total_study_minutes: number;
   points: number;
   joined_at: string;
 }
@@ -35,12 +35,12 @@ export default function Profile() {
 
     const fetchAll = async () => {
       const [{ data: p }, { data: logs }, { data: sess }, { data: allProfiles }] = await Promise.all([
-        supabase.from("profiles").select("username, total_hours, points, joined_at").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("username, total_study_minutes, points, joined_at").eq("id", user.id).maybeSingle(),
         supabase.from("study_logs").select("logged_at").eq("user_id", user.id).order("logged_at", { ascending: false }),
         supabase.from("study_sessions").select("mode, duration_seconds, sessions_completed, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("id, total_hours").order("total_hours", { ascending: false }),
+        supabase.from("profiles").select("id, total_study_minutes").order("total_study_minutes", { ascending: false }),
       ]);
-      if (p) setProfile(p);
+      if (p) setProfile(p as any);
       setStudyLogs(logs ?? []);
       setSessions(sess ?? []);
       if (allProfiles) {
@@ -141,8 +141,11 @@ export default function Profile() {
         </h1>
         <div className="pt-2 animate-fade-in stagger-2" style={{ opacity: 0, animationFillMode: "forwards" }}>
           <p className="text-7xl font-serif font-bold tabular-nums leading-none bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
-            {profile.total_hours}
+            {Math.floor(profile.total_study_minutes / 60)}
             <span className="text-2xl text-muted-foreground font-body ml-1">h</span>
+            {" "}
+            {profile.total_study_minutes % 60}
+            <span className="text-2xl text-muted-foreground font-body ml-1">m</span>
           </p>
           <p className="text-xs text-muted-foreground font-body mt-3 tracking-[0.15em]">
             of focused study, all-time

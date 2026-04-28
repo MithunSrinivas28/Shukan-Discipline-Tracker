@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Minus, Timer as TimerIcon } from "lucide-react";
 
 interface FloatingTimerProps {
   cooldown: number;
@@ -25,46 +26,78 @@ function formatElapsed(seconds: number): string {
 export default function FloatingTimer({ cooldown, mode, elapsed = 0, phase, isRunning }: FloatingTimerProps) {
   const [minimized, setMinimized] = useState(false);
 
-  if (minimized) {
-    return (
-      <button
-        onClick={() => setMinimized(false)}
-        className="fixed bottom-6 right-6 z-50 bg-card/80 backdrop-blur-md border border-border/50 rounded-full w-12 h-12 flex items-center justify-center shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.35)] text-primary font-serif font-bold text-sm transition-all duration-300 hover:scale-110 hover:shadow-[0_10px_40px_-8px_hsl(var(--primary)/0.55)] animate-scale-in"
-      >
-        {mode === "stopwatch" ? "⏱" : `${Math.floor((mode === "timer" ? cooldown : elapsed) / 60)}m`}
-      </button>
-    );
-  }
-
   const isStopwatch = mode === "stopwatch";
   const displayTime = isStopwatch ? formatElapsed(elapsed) : formatCountdown(cooldown);
   const label = isStopwatch
-    ? "Studying..."
+    ? "Stopwatch"
     : phase === "break"
     ? "Break"
     : phase === "focus"
     ? "Focus"
-    : "Cooldown";
+    : "Idle";
+
+  if (minimized) {
+    return (
+      <button
+        onClick={() => setMinimized(false)}
+        aria-label="Expand floating timer"
+        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full flex items-center justify-center
+          bg-card/70 backdrop-blur-xl border border-border/50
+          shadow-[0_10px_30px_-12px_hsl(var(--primary)/0.45)]
+          text-primary font-serif font-bold text-xs
+          transition-all duration-300 ease-out
+          hover:scale-110 hover:shadow-[0_14px_40px_-10px_hsl(var(--primary)/0.6)]
+          animate-scale-in"
+      >
+        <TimerIcon className="h-4 w-4" />
+      </button>
+    );
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-in-right">
       <div
-        className={`bg-card/75 backdrop-blur-xl border border-border/50 rounded-2xl px-5 py-4 flex items-center gap-4 min-w-[200px] shadow-[0_20px_60px_-20px_hsl(var(--foreground)/0.25)] transition-all duration-300 hover:-translate-y-0.5 ${
-          isRunning && phase === "focus" ? "ring-1 ring-primary/20" : ""
-        }`}
+        className={`group relative flex items-center gap-4 min-w-[210px] rounded-2xl px-5 py-3.5
+          bg-card/70 backdrop-blur-xl border border-border/50
+          shadow-[0_20px_60px_-24px_hsl(var(--foreground)/0.35)]
+          transition-all duration-300 ease-out
+          hover:scale-[1.025] hover:-translate-y-0.5
+          hover:shadow-[0_24px_70px_-20px_hsl(var(--foreground)/0.45)]
+          ${isRunning && phase === "focus" ? "ring-1 ring-primary/30" : ""}`}
       >
-        <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-primary animate-pulse-sakura" : "bg-muted-foreground/40"}`} />
-        <div className="flex-1">
-          <p className="text-lg font-serif font-bold text-foreground tabular-nums tracking-tight leading-none">
+        {/* Subtle inner glow when active */}
+        {isRunning && (
+          <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
+        )}
+
+        {/* Status dot */}
+        <div className="relative flex items-center justify-center">
+          <span
+            className={`block h-2 w-2 rounded-full ${
+              isRunning ? "bg-primary animate-pulse-sakura" : "bg-muted-foreground/40"
+            }`}
+          />
+        </div>
+
+        {/* Time + label */}
+        <div className="relative flex-1 leading-none">
+          <p className="text-[19px] font-serif font-bold text-foreground tabular-nums tracking-tight">
             {displayTime}
           </p>
-          <p className="text-[11px] text-muted-foreground font-body mt-1 uppercase tracking-wider">{label}</p>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body">
+            {label}
+          </p>
         </div>
+
+        {/* Minimize */}
         <button
           onClick={() => setMinimized(true)}
-          className="text-muted-foreground hover:text-foreground text-xs font-body transition-colors"
+          aria-label="Minimize floating timer"
+          className="relative h-7 w-7 rounded-full flex items-center justify-center
+            text-muted-foreground hover:text-foreground hover:bg-muted/60
+            transition-all duration-200"
         >
-          ✕
+          <Minus className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>

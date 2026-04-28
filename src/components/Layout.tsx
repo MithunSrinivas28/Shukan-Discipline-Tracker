@@ -33,8 +33,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Show floating timer when timer is running and not on dashboard
-  const showFloatingTimer = timer.isRunning && location.pathname !== "/dashboard";
+  // Show floating timer whenever a session is active or paused (across all routes)
+  const showFloatingTimer = timer.phase !== "idle" || timer.elapsed > 0;
 
   return (
     <div className="min-h-screen flex flex-col">

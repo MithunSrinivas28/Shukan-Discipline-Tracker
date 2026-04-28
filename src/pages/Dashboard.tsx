@@ -13,7 +13,7 @@ import { useTimerState, type StudyMode } from "@/hooks/useTimerState";
 
 interface Profile {
   username: string;
-  total_hours: number;
+  total_study_minutes: number;
   points: number;
 }
 
@@ -33,12 +33,12 @@ export default function Dashboard() {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
     const [{ data: p }, { data: sess }, { data: commitData }, { data: logs }] = await Promise.all([
-      supabase.from("profiles").select("username, total_hours, points").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("username, total_study_minutes, points").eq("id", user.id).maybeSingle(),
       supabase.from("study_sessions").select("mode, duration_seconds, sessions_completed, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("daily_commitments").select("target_hours").eq("user_id", user.id).eq("commitment_date", today).maybeSingle(),
       supabase.from("study_logs").select("logged_at").eq("user_id", user.id).order("logged_at", { ascending: false }),
     ]);
-    if (p) setProfile(p);
+    if (p) setProfile(p as any);
     setSessions(sess ?? []);
     setCommitment(commitData ?? null);
     setStudyLogs(logs ?? []);
@@ -176,7 +176,7 @@ export default function Dashboard() {
 
       {/* Sakura Tree — open canvas */}
       <section>
-        <SakuraTree totalHours={profile.total_hours} totalSessions={totalSessions} />
+        <SakuraTree totalHours={Math.floor(profile.total_study_minutes / 60)} totalSessions={totalSessions} />
       </section>
 
       {/* Start Study Together */}

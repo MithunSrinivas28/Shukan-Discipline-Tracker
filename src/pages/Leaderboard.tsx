@@ -5,7 +5,6 @@ import { Crown, Medal, Award, Swords } from "lucide-react";
 
 interface LeaderboardEntry {
   username: string;
-  total_hours: number;
   total_study_minutes: number;
   battle_points: number;
   battle_wins: number;
@@ -40,7 +39,7 @@ export default function Leaderboard() {
       const [{ data: leaderboard }, profileResult] = await Promise.all([
         supabase
           .from("profiles")
-          .select("username, total_hours, total_study_minutes, battle_points, battle_wins, joined_at" as any)
+          .select("username, total_study_minutes, battle_points, battle_wins, joined_at" as any)
           .order(orderCol as any, { ascending: false })
           .limit(20),
         user
@@ -106,7 +105,7 @@ export default function Leaderboard() {
               1,
               Math.floor((Date.now() - new Date(entry.joined_at).getTime()) / 86400000)
             );
-            const title = getTitle(entry.total_hours);
+            const title = getTitle(Math.floor(entry.total_study_minutes / 60));
 
             if (tab === "battle") {
               const gap = leaderBP - entry.battle_points;
