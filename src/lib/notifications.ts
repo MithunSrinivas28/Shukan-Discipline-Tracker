@@ -80,3 +80,16 @@ export function notifyStudyEvent(title: string, body: string) {
   playChime();
   showBrowserNotification(title, body);
 }
+
+/** Loud, attention-grabbing alarm — repeats a fuller bell several times. Use for goal completion. */
+export function playAlarm(repeats = 4, intervalMs = 700) {
+  for (let i = 0; i < repeats; i++) {
+    setTimeout(() => playChime(0.85), i * intervalMs);
+  }
+}
+
+/** Goal completion: louder alarm + browser notification. */
+export function notifyGoalComplete(title: string, body: string) {
+  playAlarm();
+  showBrowserNotification(title, body);
+}
