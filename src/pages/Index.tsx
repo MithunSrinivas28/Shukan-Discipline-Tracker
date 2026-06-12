@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import StudyCallLinks from "@/components/StudyCallLinks";
+import { STUDY_TOGETHER_ENABLED } from "@/lib/features";
 
 export default function Index() {
   const { user } = useAuth();
@@ -41,12 +42,14 @@ export default function Index() {
           </Link>
         </div>
 
-        <div className="pt-8 border-t border-border/50">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-body mb-3">
-            Studying with a friend?
-          </p>
-          <StudyCallLinks />
-        </div>
+        {STUDY_TOGETHER_ENABLED && (
+          <div className="pt-8 border-t border-border/50">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-body mb-3">
+              Studying with a friend?
+            </p>
+            <StudyCallLinks />
+          </div>
+        )}
       </div>
     </div>
   );
