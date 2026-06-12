@@ -8,6 +8,7 @@ import SakuraTree from "@/components/SakuraTree";
 import FocusRooms from "@/components/FocusRooms";
 import TimerMode from "@/components/TimerMode";
 import StopwatchMode from "@/components/StopwatchMode";
+import CountdownMode from "@/components/CountdownMode";
 import StudyCallLinks from "@/components/StudyCallLinks";
 import { useTimerState, type StudyMode } from "@/hooks/useTimerState";
 
@@ -89,7 +90,7 @@ export default function Dashboard() {
       <section className="space-y-4">
         <div className="flex items-center justify-center">
           <div className="inline-flex gap-1 p-1 rounded-full bg-muted/50 border border-border/40">
-            {(["timer", "stopwatch"] as StudyMode[]).map((m) => (
+            {(["timer", "stopwatch", "countdown"] as StudyMode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => timer.setMode(m)}
@@ -100,7 +101,7 @@ export default function Dashboard() {
                     : "text-muted-foreground hover:text-foreground"
                 } disabled:opacity-50`}
               >
-                {m === "timer" ? "Timer" : "Stopwatch"}
+                {m === "timer" ? "Pomodoro" : m === "stopwatch" ? "Stopwatch" : "Countdown Goal"}
               </button>
             ))}
           </div>
@@ -123,12 +124,26 @@ export default function Dashboard() {
               onCompleteSession={timer.completeTimerSession}
               onSessionLogged={fetchData}
             />
-          ) : (
+          ) : timer.mode === "stopwatch" ? (
             <StopwatchMode
               userId={user!.id}
               isRunning={timer.isRunning}
               elapsed={timer.elapsed}
               phase={timer.phase}
+              onStart={timer.start}
+              onPause={timer.pause}
+              onStop={timer.stop}
+              onSessionLogged={fetchData}
+            />
+          ) : (
+            <CountdownMode
+              userId={user!.id}
+              phase={timer.phase}
+              isRunning={timer.isRunning}
+              remaining={timer.remaining}
+              elapsed={timer.elapsed}
+              focusDuration={timer.focusDuration}
+              onSetGoalDuration={timer.setGoalDuration}
               onStart={timer.start}
               onPause={timer.pause}
               onStop={timer.stop}
