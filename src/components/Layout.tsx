@@ -8,6 +8,7 @@ import FloatingTimer from "@/components/FloatingTimer";
 import TodoPanel from "@/components/TodoPanel";
 import NotificationBell from "@/components/NotificationBell";
 import { useTimerState } from "@/hooks/useTimerState";
+import { STUDY_TOGETHER_ENABLED } from "@/lib/features";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -94,7 +95,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Login
               </Link>
             )}
-            {user && <NotificationBell />}
+            {user && STUDY_TOGETHER_ENABLED && <NotificationBell />}
             <MoodSelector mood={mood} setMood={setMood} />
             <button
               onClick={toggleDark}
