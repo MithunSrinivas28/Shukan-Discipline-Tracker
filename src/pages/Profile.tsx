@@ -1,102 +1,37 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import StreakGrid from "@/components/StreakGrid";
-
-interface ProfileData {
-  username: string;
-  total_study_minutes: number;
-  points: number;
-  joined_at: string;
-}
-
-interface StudySession {
-  mode: string;
-  duration_seconds: number;
-  sessions_completed: number;
-  created_at: string;
-}
+import {
+  useAnalyticsStore,
+  selectDailyHistoryWindow,
+} from "@/store/analyticsStore";
 
 export default function Profile() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [studyLogs, setStudyLogs] = useState<{ logged_at: string }[]>([]);
-  const [sessions, setSessions] = useState<StudySession[]>([]);
-  const [rank, setRank] = useState<number | null>(null);
+
+  const profile = useAnalyticsStore((s) => s.profile);
+  const sessions = useAnalyticsStore((s) => s.sessions);
+  const legacyLogs = useAnalyticsStore((s) => s.legacyLogs);
+  const totalStudyMinutes = useAnalyticsStore((s) => s.totalStudyMinutes);
+  const totalPoints = useAnalyticsStore((s) => s.totalPoints);
+  const totalSessions = useAnalyticsStore((s) => s.totalSessions);
+  const bestDayMinutes = useAnalyticsStore((s) => s.bestDayMinutes);
+  const rank = useAnalyticsStore((s) => s.rank);
+  const dailyStudyHistory = useAnalyticsStore((s) => s.dailyStudyHistory);
+  const fetchAnalytics = useAnalyticsStore((s) => s.fetchAnalytics);
+  const loaded = useAnalyticsStore((s) => s.loaded);
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
       return;
     }
-    if (!user) return;
+    if (user) fetchAnalytics(user.id, { force: true });
+  }, [user, authLoading, navigate, fetchAnalytics]);
 
-    const fetchAll = async () => {
-      const [{ data: p }, { data: logs }, { data: sess }, { data: allProfiles }] = await Promise.all([
-        supabase.from("profiles").select("username, total_study_minutes, points, joined_at").eq("id", user.id).maybeSingle(),
-        supabase.from("study_logs").select("logged_at").eq("user_id", user.id).order("logged_at", { ascending: false }),
-        supabase.from("study_sessions").select("mode, duration_seconds, sessions_completed, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("id, total_study_minutes").order("total_study_minutes", { ascending: false }),
-      ]);
-      if (p) setProfile(p as any);
-      setStudyLogs(logs ?? []);
-      setSessions(sess ?? []);
-      if (allProfiles) {
-        const idx = allProfiles.findIndex((pr) => pr.id === user.id);
-        setRank(idx >= 0 ? idx + 1 : null);
-      }
-    };
-    fetchAll();
-  }, [user, authLoading, navigate]);
-
-  const analytics = useMemo(() => {
-    const now = new Date();
-    const weekAgo = new Date(now);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    const prevWeekAgo = new Date(now);
-    prevWeekAgo.setDate(prevWeekAgo.getDate() - 14);
-
-    const dayMap: Record<string, number> = {};
-    let weekHours = 0;
-    let prevWeekHours = 0;
-
-    for (const log of studyLogs) {
-      const d = new Date(log.logged_at);
-      const dateStr = d.toISOString().split("T")[0];
-      dayMap[dateStr] = (dayMap[dateStr] ?? 0) + 1;
-      if (d >= weekAgo) weekHours++;
-      else if (d >= prevWeekAgo) prevWeekHours++;
-    }
-
-    const totalSessionCount = sessions.reduce((sum, s) => sum + s.sessions_completed, 0);
-    const bestDayHours = Object.values(dayMap).length > 0 ? Math.max(...Object.values(dayMap)) : 0;
-    const totalDays = Object.keys(dayMap).length;
-    const avgHours = totalDays > 0 ? studyLogs.length / totalDays : 0;
-
-    // Last 7 days array for sparkline
-    const last7: { date: string; hours: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().split("T")[0];
-      last7.push({ date: key, hours: dayMap[key] ?? 0 });
-    }
-
-    const delta = weekHours - prevWeekHours;
-    return {
-      weekHours,
-      prevWeekHours,
-      delta,
-      bestDayHours,
-      avgHours,
-      totalSessionCount,
-      last7,
-    };
-  }, [studyLogs, sessions]);
-
-  if (authLoading || !profile) {
+  if (authLoading || !loaded || !profile) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground font-body animate-pulse">Loading...</p>
@@ -104,47 +39,70 @@ export default function Profile() {
     );
   }
 
-  // Insight line — single calm sentence
+  // Last 7 days from the shared dailyStudyHistory
+  const last7 = selectDailyHistoryWindow(dailyStudyHistory, 7);
+  const last14 = selectDailyHistoryWindow(dailyStudyHistory, 14);
+
+  const weekMinutes = last7.reduce((s, d) => s + d.minutes, 0);
+  const prevWeekMinutes = last14
+    .slice(0, 7)
+    .reduce((s, d) => s + d.minutes, 0);
+  const deltaMin = weekMinutes - prevWeekMinutes;
+
+  const weekHours = +(weekMinutes / 60).toFixed(1);
+  const deltaHours = +(deltaMin / 60).toFixed(1);
+  const bestDayHours = +(bestDayMinutes / 60).toFixed(1);
+
+  // Insight
   const insight = (() => {
-    const { weekHours, delta, bestDayHours, avgHours } = analytics;
-    if (weekHours === 0) return "A quiet week. Begin again tomorrow — one hour is enough.";
-    if (delta > 2) return `You studied ${delta} more hours than last week. The rhythm is taking hold.`;
-    if (delta < -2) return `Last week was stronger by ${Math.abs(delta)} hours. Return gently.`;
-    if (bestDayHours >= 4) return `Your best day reached ${bestDayHours} hours — that depth of focus is rare.`;
-    if (avgHours >= 2) return `You're averaging ${avgHours.toFixed(1)} hours per active day. Consistency is becoming character.`;
+    if (weekMinutes === 0)
+      return "A quiet week. Begin again tomorrow — one hour is enough.";
+    if (deltaHours > 2)
+      return `You studied ${deltaHours}h more than last week. The rhythm is taking hold.`;
+    if (deltaHours < -2)
+      return `Last week was stronger by ${Math.abs(deltaHours)}h. Return gently.`;
+    if (bestDayHours >= 4)
+      return `Your best day reached ${bestDayHours}h — that depth of focus is rare.`;
     return "Steady, quiet progress. Keep showing up.";
   })();
 
-  // Sparkline geometry
-  const maxHr = Math.max(1, ...analytics.last7.map((d) => d.hours));
+  // Sparkline geometry — minutes per day
+  const peakMin = Math.max(1, ...last7.map((d) => d.minutes));
+  const peakHours = +(peakMin / 60).toFixed(1);
   const W = 280;
   const H = 64;
-  const points = analytics.last7.map((d, i) => {
-    const x = (i / (analytics.last7.length - 1)) * W;
-    const y = H - (d.hours / maxHr) * (H - 8) - 4;
+  const points = last7.map((d, i) => {
+    const x = (i / (last7.length - 1)) * W;
+    const y = H - (d.minutes / peakMin) * (H - 8) - 4;
     return [x, y] as const;
   });
-  const pathD = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const pathD = points
+    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`)
+    .join(" ");
   const areaD = `${pathD} L${W},${H} L0,${H} Z`;
 
   return (
     <div className="max-w-xl mx-auto py-14 px-5 space-y-14 animate-fade-in">
-      {/* Header — name + total */}
+      {/* Header */}
       <header className="text-center space-y-3 relative">
-        {/* Soft glow behind hero */}
         <div className="absolute inset-x-0 -top-8 mx-auto h-40 w-40 rounded-full bg-primary/15 blur-3xl pointer-events-none -z-10" />
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body animate-fade-in">
           Personal report
         </p>
-        <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight animate-fade-in stagger-1" style={{ opacity: 0, animationFillMode: "forwards" }}>
+        <h1
+          className="text-3xl font-serif font-bold text-foreground tracking-tight animate-fade-in stagger-1"
+          style={{ opacity: 0, animationFillMode: "forwards" }}
+        >
           {profile.username}
         </h1>
-        <div className="pt-2 animate-fade-in stagger-2" style={{ opacity: 0, animationFillMode: "forwards" }}>
+        <div
+          className="pt-2 animate-fade-in stagger-2"
+          style={{ opacity: 0, animationFillMode: "forwards" }}
+        >
           <p className="text-7xl font-serif font-bold tabular-nums leading-none bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
-            {Math.floor(profile.total_study_minutes / 60)}
-            <span className="text-2xl text-muted-foreground font-body ml-1">h</span>
-            {" "}
-            {profile.total_study_minutes % 60}
+            {Math.floor(totalStudyMinutes / 60)}
+            <span className="text-2xl text-muted-foreground font-body ml-1">h</span>{" "}
+            {totalStudyMinutes % 60}
             <span className="text-2xl text-muted-foreground font-body ml-1">m</span>
           </p>
           <p className="text-xs text-muted-foreground font-body mt-3 tracking-[0.15em]">
@@ -153,38 +111,38 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* Weekly summary — flowing line */}
+      {/* This week */}
       <section className="space-y-2 text-center">
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
           This week
         </p>
         <p className="font-serif text-2xl font-semibold text-foreground">
-          {analytics.weekHours} hours
+          {weekHours} hours
           <span className="text-muted-foreground font-body text-base font-normal ml-2">
-            {analytics.delta === 0
+            {deltaHours === 0
               ? "· steady"
-              : analytics.delta > 0
-              ? `· +${analytics.delta} vs last`
-              : `· ${analytics.delta} vs last`}
+              : deltaHours > 0
+              ? `· +${deltaHours}h vs last`
+              : `· ${deltaHours}h vs last`}
           </span>
         </p>
       </section>
 
-      {/* Insight line */}
+      {/* Insight */}
       <section className="text-center px-2">
         <p className="font-serif italic text-foreground/80 text-base leading-relaxed text-balance">
           “{insight}”
         </p>
       </section>
 
-      {/* Trend graph — minimal sparkline */}
+      {/* Trend graph */}
       <section className="space-y-3">
         <div className="flex items-end justify-between px-1">
           <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
             Last 7 days
           </p>
           <p className="text-[11px] text-muted-foreground font-body tabular-nums">
-            peak {maxHr}h
+            peak {peakHours}h
           </p>
         </div>
         <div className="px-2 py-4">
@@ -205,32 +163,27 @@ export default function Profile() {
               strokeLinejoin="round"
             />
             {points.map(([x, y], i) => (
-              <circle
-                key={i}
-                cx={x}
-                cy={y}
-                r="2"
-                fill="hsl(var(--primary))"
-                className="transition-all"
-              />
+              <circle key={i} cx={x} cy={y} r="2" fill="hsl(var(--primary))" />
             ))}
           </svg>
           <div className="flex justify-between text-[10px] text-muted-foreground font-body mt-1 px-0.5">
-            {analytics.last7.map((d, i) => (
+            {last7.map((d, i) => (
               <span key={i} className="tabular-nums">
-                {new Date(d.date).toLocaleDateString(undefined, { weekday: "narrow" })}
+                {new Date(d.date + "T00:00:00").toLocaleDateString(undefined, {
+                  weekday: "narrow",
+                })}
               </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Key stats — inline, divider-separated, no boxes */}
+      {/* Key stats */}
       <section>
         <div className="flex items-center justify-between text-center divide-x divide-border/40">
           <div className="flex-1 px-2">
             <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
-              {profile.points}
+              {totalPoints}
             </p>
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
               Points
@@ -238,7 +191,7 @@ export default function Profile() {
           </div>
           <div className="flex-1 px-2">
             <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
-              {analytics.bestDayHours}
+              {bestDayHours}
               <span className="text-sm text-muted-foreground font-body ml-0.5">h</span>
             </p>
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
@@ -247,7 +200,7 @@ export default function Profile() {
           </div>
           <div className="flex-1 px-2">
             <p className="text-2xl font-serif font-bold text-foreground tabular-nums">
-              {analytics.totalSessionCount}
+              {totalSessions}
             </p>
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-body mt-1">
               Sessions
@@ -264,18 +217,22 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* Activity heatmap — open canvas */}
+      {/* Activity heatmap */}
       <section className="space-y-3">
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body px-1">
           Study activity
         </p>
         <div className="overflow-hidden">
-          <StreakGrid logs={studyLogs} sessions={sessions} />
+          <StreakGrid logs={legacyLogs} sessions={sessions} />
         </div>
       </section>
 
       <p className="text-center text-[11px] text-muted-foreground font-body pt-4">
-        Joined {new Date(profile.joined_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+        Joined{" "}
+        {new Date(profile.joined_at).toLocaleDateString(undefined, {
+          month: "long",
+          year: "numeric",
+        })}
       </p>
     </div>
   );
