@@ -16,6 +16,15 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const mapAuthError = (error: string): string => {
+    const e = error.toLowerCase();
+    if (e.includes("rate") || e.includes("too many")) return "Too many attempts. Please try again later.";
+    if (e.includes("confirm")) return "Please check your email to confirm your account.";
+    if (e.includes("network") || e.includes("fetch")) return "Network error. Please check your connection.";
+    if (isLogin) return "Invalid email or password.";
+    return "Unable to complete sign-up. Please try again.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -23,23 +32,23 @@ export default function Auth() {
     if (isLogin) {
       const { error } = await signIn(email, password);
       if (error) {
-        toast({ title: "Error", description: error, variant: "destructive" });
+        toast({ title: "Sign in failed", description: mapAuthError(error), variant: "destructive" });
       } else {
         navigate("/dashboard");
       }
     } else {
       if (username.trim().length < 3) {
-        toast({ title: "Error", description: "Username must be at least 3 characters", variant: "destructive" });
+        toast({ title: "Invalid username", description: "Username must be at least 3 characters", variant: "destructive" });
         setLoading(false);
         return;
       }
       const { error } = await signUp(email, password, username.trim());
       if (error) {
-        toast({ title: "Error", description: error, variant: "destructive" });
+        toast({ title: "Sign up failed", description: mapAuthError(error), variant: "destructive" });
       } else {
         toast({
           title: "Check your email",
-          description: "We sent you a confirmation link to verify your account.",
+          description: "If this email is available, we've sent a confirmation link.",
         });
       }
     }
