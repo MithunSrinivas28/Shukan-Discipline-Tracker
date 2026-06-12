@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-export type StudyMode = "timer" | "stopwatch";
+export type StudyMode = "timer" | "stopwatch" | "countdown";
 export type TimerPhase = "focus" | "break" | "idle";
 export type IntervalType = "pomodoro" | "long";
 
@@ -94,6 +94,20 @@ export function useTimerState() {
 
   const setMode = (mode: StudyMode) => {
     setState((s) => ({ ...defaultState, mode }));
+  };
+
+  /** Set the goal duration (in seconds) for Countdown mode. Only effective when idle. */
+  const setGoalDuration = (seconds: number) => {
+    setState((s) => {
+      if (s.phase !== "idle") return s;
+      return {
+        ...s,
+        focusDuration: Math.max(60, Math.floor(seconds)),
+        sessionStartTimestamp: null,
+        pauseAccumulated: 0,
+        pauseTimestamp: null,
+      };
+    });
   };
 
   const setIntervalType = (type: IntervalType) => {
@@ -192,6 +206,7 @@ export function useTimerState() {
     currentDuration,
     setMode,
     setIntervalType,
+    setGoalDuration,
     start,
     pause,
     stop,
