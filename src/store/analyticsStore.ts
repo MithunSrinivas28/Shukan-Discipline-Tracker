@@ -169,7 +169,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     ] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, username, total_study_minutes, points, joined_at")
+        .select("id, username, total_study_minutes, points, joined_at, avatar_url" as any)
         .eq("id", userId)
         .maybeSingle(),
       supabase
