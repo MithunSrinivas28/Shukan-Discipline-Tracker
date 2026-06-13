@@ -36,8 +36,12 @@ export default function AvatarUpload({
   const { toast } = useToast();
 
   // Resolve signed URL when avatarUrl is a storage path (not a full URL)
-  useState(() => {
-    if (!avatarUrl) return;
+  useEffect(() => {
+    let cancelled = false;
+    if (!avatarUrl) {
+      setSignedUrl(null);
+      return;
+    }
     if (avatarUrl.startsWith("http")) {
       setSignedUrl(avatarUrl);
       return;
@@ -46,9 +50,12 @@ export default function AvatarUpload({
       .from("avatars")
       .createSignedUrl(avatarUrl, 60 * 60)
       .then(({ data }) => {
-        if (data?.signedUrl) setSignedUrl(data.signedUrl);
+        if (!cancelled && data?.signedUrl) setSignedUrl(data.signedUrl);
       });
-  });
+    return () => {
+      cancelled = true;
+    };
+  }, [avatarUrl]);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
