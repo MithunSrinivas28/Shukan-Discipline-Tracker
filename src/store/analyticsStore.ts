@@ -190,7 +190,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
         .order("total_study_minutes", { ascending: false }),
     ]);
 
-    const profile = (profileData as ProfileSnapshot) ?? null;
+    const profile = (profileData as unknown as ProfileSnapshot) ?? null;
     const sessions = (sessionsData ?? []) as SessionRow[];
     const legacyLogs = (legacyLogsData ?? []) as LegacyLogRow[];
     const leaderboard = ((leaderboardData ?? []) as any[]) as LeaderboardEntry[];
