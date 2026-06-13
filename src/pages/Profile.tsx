@@ -109,20 +109,45 @@ export default function Profile() {
     .join(" ");
   const areaD = `${pathD} L${W},${H} L0,${H} Z`;
 
+  // Primary trait for header chip
+  const primaryTrait = useMemo(() => {
+    if (sessions.length < 3) return null;
+    return buildTraits(sessions, dailyStudyHistory, goalCompletionRate)[0];
+  }, [sessions, dailyStudyHistory, goalCompletionRate]);
+
   return (
     <div className="max-w-xl mx-auto py-14 px-5 space-y-14 animate-fade-in">
       {/* Header */}
-      <header className="text-center space-y-3 relative">
+      <header className="text-center space-y-4 relative">
         <div className="absolute inset-x-0 -top-8 mx-auto h-40 w-40 rounded-full bg-primary/15 blur-3xl pointer-events-none -z-10" />
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body animate-fade-in">
-          Personal report
-        </p>
+
+        <div className="flex justify-center animate-fade-in">
+          <AvatarUpload
+            userId={user!.id}
+            username={profile.username}
+            avatarUrl={profile.avatar_url ?? null}
+            size={112}
+            onUploaded={() => fetchAnalytics(user!.id, { force: true })}
+          />
+        </div>
+
         <h1
           className="text-3xl font-serif font-bold text-foreground tracking-tight animate-fade-in stagger-1"
           style={{ opacity: 0, animationFillMode: "forwards" }}
         >
           {profile.username}
         </h1>
+
+        {primaryTrait && (
+          <p
+            className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body animate-fade-in stagger-1"
+            style={{ opacity: 0, animationFillMode: "forwards" }}
+          >
+            <span className="mr-1.5">{primaryTrait.symbol}</span>
+            {primaryTrait.title}
+          </p>
+        )}
+
         <div
           className="pt-2 animate-fade-in stagger-2"
           style={{ opacity: 0, animationFillMode: "forwards" }}
@@ -145,6 +170,16 @@ export default function Profile() {
         dailyStudyHistory={dailyStudyHistory}
         goalCompletionRate={goalCompletionRate}
       />
+
+      {/* Badges */}
+      <Badges
+        sessions={sessions}
+        totalStudyMinutes={totalStudyMinutes}
+        longestStreak={longestStreak}
+        dailyStudyHistory={dailyStudyHistory}
+      />
+
+
 
       {/* This week */}
       <section className="space-y-2 text-center">
