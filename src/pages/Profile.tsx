@@ -136,6 +136,13 @@ export default function Profile() {
         </div>
       </header>
 
+      {/* Focus Signature — study identity */}
+      <FocusSignature
+        sessions={sessions}
+        dailyStudyHistory={dailyStudyHistory}
+        goalCompletionRate={goalCompletionRate}
+      />
+
       {/* This week */}
       <section className="space-y-2 text-center">
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body">
