@@ -25,6 +25,8 @@ export default function Profile() {
   const fetchAnalytics = useAnalyticsStore((s) => s.fetchAnalytics);
   const loaded = useAnalyticsStore((s) => s.loaded);
 
+  const [goalCompletionRate, setGoalCompletionRate] = useState(0);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -32,6 +34,27 @@ export default function Profile() {
     }
     if (user) fetchAnalytics(user.id, { force: true });
   }, [user, authLoading, navigate, fetchAnalytics]);
+
+  // Goal completion rate from daily_commitments vs actual daily minutes
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("daily_commitments")
+        .select("target_hours, commitment_date")
+        .eq("user_id", user.id);
+      if (!data || data.length === 0) {
+        setGoalCompletionRate(0);
+        return;
+      }
+      let met = 0;
+      for (const c of data) {
+        const mins = dailyStudyHistory[c.commitment_date] ?? 0;
+        if (mins / 60 >= c.target_hours) met++;
+      }
+      setGoalCompletionRate(met / data.length);
+    })();
+  }, [user, dailyStudyHistory]);
 
   if (authLoading || !loaded || !profile) {
     return (
