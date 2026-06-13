@@ -9,6 +9,7 @@ export interface ProfileSnapshot {
   joined_at: string;
   total_study_minutes: number;
   points: number;
+  avatar_url: string | null;
 }
 
 export interface SessionRow {
