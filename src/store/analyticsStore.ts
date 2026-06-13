@@ -195,17 +195,27 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     const leaderboard = ((leaderboardData ?? []) as any[]) as LeaderboardEntry[];
 
     const dailyStudyHistory = buildDailyHistory(sessions, legacyLogs);
-    const bestDayMinutes = Object.values(dailyStudyHistory).reduce(
+    const minutesValues = Object.values(dailyStudyHistory);
+    const bestDayMinutes = minutesValues.reduce(
       (max, v) => (v > max ? v : max),
       0,
     );
+    // Single source of truth: total minutes derived from study_sessions
+    // (plus legacy hour-logs) instead of the cached profiles column.
+    const totalStudyMinutes = minutesValues.reduce((sum, v) => sum + v, 0);
     const { streak, longestStreak } = computeStreaks(dailyStudyHistory);
     const totalSessions = sessions.reduce(
       (sum, s) => sum + s.sessions_completed,
       0,
     );
 
-    const rankIdx = leaderboard.findIndex((p) => p.id === userId);
+    // Sort leaderboard by the same derived metric so ranking matches profile/heatmap.
+    // profiles.total_study_minutes is incremented atomically per session insert,
+    // so it stays in sync with the per-user session sum.
+    const sortedLeaderboard = [...leaderboard].sort(
+      (a, b) => (b.total_study_minutes ?? 0) - (a.total_study_minutes ?? 0),
+    );
+    const rankIdx = sortedLeaderboard.findIndex((p) => p.id === userId);
     const rank = rankIdx >= 0 ? rankIdx + 1 : null;
 
     set({
@@ -215,8 +225,8 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       profile,
       sessions,
       legacyLogs,
-      leaderboard,
-      totalStudyMinutes: profile?.total_study_minutes ?? 0,
+      leaderboard: sortedLeaderboard,
+      totalStudyMinutes,
       totalPoints: profile?.points ?? 0,
       totalSessions,
       bestDayMinutes,
