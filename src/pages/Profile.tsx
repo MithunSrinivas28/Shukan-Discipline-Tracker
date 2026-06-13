@@ -23,6 +23,7 @@ export default function Profile() {
   const totalSessions = useAnalyticsStore((s) => s.totalSessions);
   const bestDayMinutes = useAnalyticsStore((s) => s.bestDayMinutes);
   const rank = useAnalyticsStore((s) => s.rank);
+  const longestStreak = useAnalyticsStore((s) => s.longestStreak);
   const dailyStudyHistory = useAnalyticsStore((s) => s.dailyStudyHistory);
   const fetchAnalytics = useAnalyticsStore((s) => s.fetchAnalytics);
   const loaded = useAnalyticsStore((s) => s.loaded);
