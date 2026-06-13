@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import type { SessionRow, DailyStudyHistory } from "@/store/analyticsStore";
 
+export { buildTraits };
+export type { Trait, TraitId };
+
 interface FocusSignatureProps {
   sessions: SessionRow[];
   dailyStudyHistory: DailyStudyHistory;

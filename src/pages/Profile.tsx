@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import StreakGrid from "@/components/StreakGrid";
-import FocusSignature from "@/components/FocusSignature";
+import FocusSignature, { buildTraits } from "@/components/FocusSignature";
+import AvatarUpload from "@/components/AvatarUpload";
+import Badges from "@/components/Badges";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAnalyticsStore,
@@ -21,6 +23,7 @@ export default function Profile() {
   const totalSessions = useAnalyticsStore((s) => s.totalSessions);
   const bestDayMinutes = useAnalyticsStore((s) => s.bestDayMinutes);
   const rank = useAnalyticsStore((s) => s.rank);
+  const longestStreak = useAnalyticsStore((s) => s.longestStreak);
   const dailyStudyHistory = useAnalyticsStore((s) => s.dailyStudyHistory);
   const fetchAnalytics = useAnalyticsStore((s) => s.fetchAnalytics);
   const loaded = useAnalyticsStore((s) => s.loaded);
@@ -106,20 +109,45 @@ export default function Profile() {
     .join(" ");
   const areaD = `${pathD} L${W},${H} L0,${H} Z`;
 
+  // Primary trait for header chip
+  const primaryTrait = useMemo(() => {
+    if (sessions.length < 3) return null;
+    return buildTraits(sessions, dailyStudyHistory, goalCompletionRate)[0];
+  }, [sessions, dailyStudyHistory, goalCompletionRate]);
+
   return (
     <div className="max-w-xl mx-auto py-14 px-5 space-y-14 animate-fade-in">
       {/* Header */}
-      <header className="text-center space-y-3 relative">
+      <header className="text-center space-y-4 relative">
         <div className="absolute inset-x-0 -top-8 mx-auto h-40 w-40 rounded-full bg-primary/15 blur-3xl pointer-events-none -z-10" />
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body animate-fade-in">
-          Personal report
-        </p>
+
+        <div className="flex justify-center animate-fade-in">
+          <AvatarUpload
+            userId={user!.id}
+            username={profile.username}
+            avatarUrl={profile.avatar_url ?? null}
+            size={112}
+            onUploaded={() => fetchAnalytics(user!.id, { force: true })}
+          />
+        </div>
+
         <h1
           className="text-3xl font-serif font-bold text-foreground tracking-tight animate-fade-in stagger-1"
           style={{ opacity: 0, animationFillMode: "forwards" }}
         >
           {profile.username}
         </h1>
+
+        {primaryTrait && (
+          <p
+            className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-body animate-fade-in stagger-1"
+            style={{ opacity: 0, animationFillMode: "forwards" }}
+          >
+            <span className="mr-1.5">{primaryTrait.symbol}</span>
+            {primaryTrait.title}
+          </p>
+        )}
+
         <div
           className="pt-2 animate-fade-in stagger-2"
           style={{ opacity: 0, animationFillMode: "forwards" }}
@@ -142,6 +170,16 @@ export default function Profile() {
         dailyStudyHistory={dailyStudyHistory}
         goalCompletionRate={goalCompletionRate}
       />
+
+      {/* Badges */}
+      <Badges
+        sessions={sessions}
+        totalStudyMinutes={totalStudyMinutes}
+        longestStreak={longestStreak}
+        dailyStudyHistory={dailyStudyHistory}
+      />
+
+
 
       {/* This week */}
       <section className="space-y-2 text-center">

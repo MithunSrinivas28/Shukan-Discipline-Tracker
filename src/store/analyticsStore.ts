@@ -9,6 +9,7 @@ export interface ProfileSnapshot {
   joined_at: string;
   total_study_minutes: number;
   points: number;
+  avatar_url: string | null;
 }
 
 export interface SessionRow {
@@ -168,7 +169,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
     ] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, username, total_study_minutes, points, joined_at")
+        .select("id, username, total_study_minutes, points, joined_at, avatar_url" as any)
         .eq("id", userId)
         .maybeSingle(),
       supabase
@@ -189,7 +190,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
         .order("total_study_minutes", { ascending: false }),
     ]);
 
-    const profile = (profileData as ProfileSnapshot) ?? null;
+    const profile = (profileData as unknown as ProfileSnapshot) ?? null;
     const sessions = (sessionsData ?? []) as SessionRow[];
     const legacyLogs = (legacyLogsData ?? []) as LegacyLogRow[];
     const leaderboard = ((leaderboardData ?? []) as any[]) as LeaderboardEntry[];
