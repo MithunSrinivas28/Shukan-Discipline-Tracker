@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import StreakGrid from "@/components/StreakGrid";
+import FocusSignature from "@/components/FocusSignature";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useAnalyticsStore,
   selectDailyHistoryWindow,
