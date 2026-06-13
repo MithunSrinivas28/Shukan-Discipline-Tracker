@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import StreakGrid from "@/components/StreakGrid";
-import FocusSignature from "@/components/FocusSignature";
+import FocusSignature, { buildTraits } from "@/components/FocusSignature";
+import AvatarUpload from "@/components/AvatarUpload";
+import Badges from "@/components/Badges";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAnalyticsStore,
