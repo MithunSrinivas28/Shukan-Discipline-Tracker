@@ -1,8 +1,8 @@
 # Shūkan — A Discipline Tracker
 
-Shūkan is a minimalist web application designed to transform intention into consistent action. It measures study discipline through verified hours, structured commitments, and long-term progress tracking.
+Shūkan is a minimalist web application designed to help users turn intention into consistent action. It measures study discipline through verified hours, structured commitments, and long-term progress tracking.
 
-The platform is built around a simple philosophy:
+Its core philosophy is simple:
 
 Consistency compounds. Motivation fades.
 
@@ -10,23 +10,22 @@ Shūkan exists to make discipline visible.
 
 ---
 
-## Concept
+## Overview
 
-Most productivity tools track time.  
-Shūkan tracks commitment.
+Most productivity tools track time. Shūkan tracks commitment.
 
-Instead of rewarding bursts of effort, it emphasizes sustained daily practice. Users log verified study hours, declare commitments, and observe their progress through calm analytics and a public leaderboard ranked by real work.
+Instead of rewarding short bursts of effort, it emphasizes sustained daily practice. Users log verified study hours, set daily goals, and review their progress through clear analytics and a public leaderboard ranked by cumulative effort.
 
-The design avoids noise, gamified clutter, and artificial urgency. The interface is intentionally restrained to encourage focus rather than stimulation.
+The interface is intentionally restrained. It avoids clutter, noise, and unnecessary distraction so the focus remains on work.
 
 ---
 
 ## Core Principles
 
-Discipline over motivation  
-Verification over self-reporting  
-Consistency over intensity  
-Calm over distraction  
+- Discipline over motivation
+- Verification over self-reporting
+- Consistency over intensity
+- Clarity over distraction
 
 ---
 
@@ -34,46 +33,46 @@ Calm over distraction
 
 ### Verified Study Logging
 
-Users can increment study hours only after completing a full cooldown interval. This prevents artificial inflation and ensures logged time reflects real effort.
+Users can increment study time only after completing a full cooldown interval. This helps ensure that logged time reflects real effort rather than manual inflation.
 
 ### Daily Commitment System
 
-Users declare a study goal for the day. Completing the commitment yields bonus recognition, reinforcing follow-through behavior without penalties for missed goals.
+Users set a study goal for the day. Completing the commitment may unlock additional recognition and helps reinforce follow-through without punishing missed goals.
 
 ### Personal Analytics
 
-A private dashboard presents meaningful metrics:
+A private dashboard presents meaningful study statistics, including:
 
-- Total verified hours  
-- Weekly activity  
-- Best study day  
-- Average session length  
-- Planning accuracy  
+- Total verified hours
+- Weekly activity
+- Best study day
+- Average session length
+- Planning accuracy
 
-The analytics emphasize clarity and reflection rather than competition.
+The analytics are designed to support reflection rather than competition.
 
 ### Lifetime Leaderboard
 
-The public leaderboard ranks users by cumulative verified hours.
+The public leaderboard ranks users by cumulative verified study time.
 
-Each entry displays:
+Each entry shows:
 
-- Rank  
-- Username  
-- Days active  
-- Total hours  
-- Relative position to the leader  
+- Rank
+- Username
+- Days active
+- Total study time
+- Distance from the current leader
 
-The leaderboard highlights long-term consistency rather than short bursts of activity.
+This highlights long-term consistency rather than short-term spikes.
 
 ### Minimalist Interface
 
-The visual language draws from Japanese minimalism:
+The visual style is inspired by Japanese minimalism:
 
-Muted colors  
-Generous spacing  
-Thin typography  
-Subtle hierarchy  
+- Muted colors
+- Generous spacing
+- Thin typography
+- Subtle hierarchy
 
 The interface is designed to reduce cognitive load and support extended use.
 
@@ -85,12 +84,12 @@ Shūkan enforces integrity through server-side validation.
 
 Each user record includes:
 
-- Account creation timestamp  
-- Total verified hours  
-- Last verified session timestamp  
-- Daily commitment value  
+- Account creation timestamp
+- Total verified study time
+- Last verified session timestamp
+- Daily commitment value
 
-Study increments are allowed only after a defined time interval. Commitment bonuses are awarded automatically when conditions are met.
+Study increments are allowed only after a defined time interval. Commitment rewards are awarded automatically when conditions are met.
 
 All calculations prioritize transparency and simplicity.
 
@@ -98,23 +97,23 @@ All calculations prioritize transparency and simplicity.
 
 ## User Flow
 
-1. User creates an account  
-2. User sets a daily commitment  
-3. User logs study hours after completing sessions  
-4. Dashboard updates analytics in real time  
-5. Leaderboard reflects long-term progress  
+1. User creates an account
+2. User sets a daily commitment
+3. User logs study sessions
+4. Dashboard updates analytics
+5. Leaderboard reflects cumulative progress
 
-The system encourages a cycle of planning, execution, and reflection.
+The system supports a cycle of planning, execution, and reflection.
 
 ---
 
 ## Privacy
 
-Shūkan stores only essential metadata required for tracking progress.
+Shūkan stores only the data required to track progress.
 
-No audio, video, or personal content is recorded.  
-No behavioral profiling is performed.  
-No data is shared externally.
+- No audio or video is recorded
+- No personal content is shared externally
+- No behavioral profiling is performed
 
 The system measures effort, not identity.
 
@@ -122,29 +121,31 @@ The system measures effort, not identity.
 
 ## Intended Audience
 
-Students  
-Self-learners  
-Engineers  
-Researchers  
-Anyone building a daily practice  
+Shūkan is built for:
 
-Shūkan is especially suited for individuals who prefer structured, quiet productivity tools over gamified environments.
+- Students
+- Self-learners
+- Engineers
+- Researchers
+- Anyone building a disciplined routine
+
+It is especially useful for users who prefer structured productivity tools over gamified environments.
 
 ---
 
 ## Technology
 
-Frontend: React (Vite), TypeScript, Tailwind CSS  
-Backend & Database: Supabase  
-Hosting: Vercel  
+- Frontend: React (Vite), TypeScript, Tailwind CSS
+- Backend and Database: Supabase
+- Hosting: Vercel
 
-The architecture favors simplicity, scalability, and maintainability.
+The architecture is designed for simplicity, scalability, and maintainability.
 
 ---
 
 ## Deployment
 
-The application is deployed as a static site with serverless backend integration. Automatic redeployment occurs on repository updates.
+The application is deployed as a static site with serverless backend integration. Automatic redeployment occurs when updates are pushed to the repository.
 
 Client-side routing is supported through rewrite configuration to ensure seamless navigation.
 
@@ -152,13 +153,13 @@ Client-side routing is supported through rewrite configuration to ensure seamles
 
 ## Future Direction
 
-Potential enhancements include:
+Potential future enhancements include:
 
-Presence verification  
-Focus mode  
-Group accountability rooms  
-Discipline scoring  
-Mobile installation support  
+- Presence verification
+- Focus mode
+- Group accountability rooms
+- Discipline scoring
+- Mobile installation support
 
 The goal is to evolve into a system that measures not just time, but behavioral consistency.
 
@@ -174,8 +175,9 @@ Full Stack Development and Cloud Computing
 
 ## Closing Note
 
-Shūkan is not a productivity tool designed to push users harder.  
-It is a quiet system designed to help users keep promises to themselves.
+Shūkan is not designed to push users harder.
+
+It is designed to help users keep promises to themselves.
 
 Discipline is not dramatic.  
 It is repetition.
