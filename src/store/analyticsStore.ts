@@ -166,8 +166,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       { data: sessionsData },
       { data: legacyLogsData },
       { data: leaderboardData },
-      { data: allSessionsData },
-      { data: allLogsData },
+      { data: leaderboardMinutesData },
     ] = await Promise.all([
       supabase
         .from("profiles")
@@ -189,14 +188,10 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
         .select(
           "id, username, total_study_minutes, battle_points, battle_wins, joined_at" as any,
         ),
-      // Pull every user's raw sessions/logs so leaderboard totals are derived
-      // from the same source as Profile/Heatmap (no cached column drift).
-      supabase
-        .from("study_sessions")
-        .select("user_id, duration_seconds"),
-      supabase
-        .from("study_logs")
-        .select("user_id"),
+      // SECURITY DEFINER RPC: returns derived total_minutes (sessions + legacy logs)
+      // for every user, bypassing per-user RLS so the leaderboard is accurate
+      // regardless of who is signed in.
+      supabase.rpc("get_leaderboard_minutes" as any),
     ]);
 
     const profile = (profileData as unknown as ProfileSnapshot) ?? null;
@@ -210,8 +205,6 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       (max, v) => (v > max ? v : max),
       0,
     );
-    // Single source of truth: total minutes derived from study_sessions
-    // (plus legacy hour-logs) instead of the cached profiles column.
     const totalStudyMinutes = minutesValues.reduce((sum, v) => sum + v, 0);
     const { streak, longestStreak } = computeStreaks(dailyStudyHistory);
     const totalSessions = sessions.reduce(
@@ -219,15 +212,12 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       0,
     );
 
-    // Derive per-user minutes from raw sources (same logic as Profile)
-    // so Leaderboard never drifts from the canonical totalStudyMinutes.
     const minutesByUser: Record<string, number> = {};
-    for (const s of (allSessionsData ?? []) as { user_id: string; duration_seconds: number }[]) {
-      minutesByUser[s.user_id] =
-        (minutesByUser[s.user_id] ?? 0) + Math.floor(s.duration_seconds / 60);
-    }
-    for (const l of (allLogsData ?? []) as { user_id: string }[]) {
-      minutesByUser[l.user_id] = (minutesByUser[l.user_id] ?? 0) + 60;
+    for (const row of (leaderboardMinutesData ?? []) as {
+      user_id: string;
+      total_minutes: number | string;
+    }[]) {
+      minutesByUser[row.user_id] = Number(row.total_minutes) || 0;
     }
 
     const sortedLeaderboard = leaderboard
