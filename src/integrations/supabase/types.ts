@@ -326,6 +326,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_leaderboard_minutes: {
+        Args: never
+        Returns: {
+          total_minutes: number
+          user_id: string
+        }[]
+      }
       get_username: { Args: { p_user_id: string }; Returns: string }
       increment_study_hour: { Args: { p_user_id: string }; Returns: Json }
       increment_study_minutes: {
