@@ -59,6 +59,13 @@ export default function Profile() {
     })();
   }, [user, dailyStudyHistory]);
 
+  // Primary trait for header chip — must be declared before any early return
+  // to keep hook order stable across renders.
+  const primaryTrait = useMemo(() => {
+    if (sessions.length < 3) return null;
+    return buildTraits(sessions, dailyStudyHistory, goalCompletionRate)[0];
+  }, [sessions, dailyStudyHistory, goalCompletionRate]);
+
   if (authLoading || !loaded || !profile) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -109,11 +116,6 @@ export default function Profile() {
     .join(" ");
   const areaD = `${pathD} L${W},${H} L0,${H} Z`;
 
-  // Primary trait for header chip
-  const primaryTrait = useMemo(() => {
-    if (sessions.length < 3) return null;
-    return buildTraits(sessions, dailyStudyHistory, goalCompletionRate)[0];
-  }, [sessions, dailyStudyHistory, goalCompletionRate]);
 
   return (
     <div className="max-w-xl mx-auto py-14 px-5 space-y-14 animate-fade-in">
