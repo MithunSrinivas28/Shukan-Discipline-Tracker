@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
+import Vault from "./pages/Vault";
 import NotFound from "./pages/NotFound";
 import FocusRoom from "./pages/FocusRoom";
 import { STUDY_TOGETHER_ENABLED } from "@/lib/features";
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/vault" element={<Vault />} />
               {STUDY_TOGETHER_ENABLED && (
                 <Route path="/focus-room/:roomId" element={<FocusRoom />} />
               )}
