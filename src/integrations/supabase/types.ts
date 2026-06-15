@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      code_snippets: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          language: string
+          metadata: Json
+          notes: string | null
+          source: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          language?: string
+          metadata?: Json
+          notes?: string | null
+          source?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          language?: string
+          metadata?: Json
+          notes?: string | null
+          source?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_commitments: {
         Row: {
           commitment_date: string
@@ -34,6 +76,45 @@ export type Database = {
           created_at?: string
           id?: string
           target_hours?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          metadata: Json
+          question: string
+          source: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          question: string
+          source?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          question?: string
+          source?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

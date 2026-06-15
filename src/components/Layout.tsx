@@ -69,6 +69,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   Dashboard
                 </Link>
                 <Link
+                  to="/vault"
+                  data-active={isActive("/vault")}
+                  className={`nav-underline transition-colors hover:text-foreground ${
+                    isActive("/vault") ? "text-foreground font-medium" : "text-muted-foreground"
+                  }`}
+                >
+                  Vault
+                </Link>
+                <Link
                   to="/profile"
                   data-active={isActive("/profile")}
                   className={`nav-underline transition-colors hover:text-foreground ${
