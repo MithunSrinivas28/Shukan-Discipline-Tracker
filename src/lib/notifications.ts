@@ -75,21 +75,25 @@ export function showBrowserNotification(title: string, body: string) {
   }
 }
 
-/** Combined: play chime + show notification. */
+import { playSlot } from "./sounds";
+
+/** Focus session / stopwatch hour: play selected focus sound + show notification. */
 export function notifyStudyEvent(title: string, body: string) {
-  playChime();
+  playSlot("focusComplete");
   showBrowserNotification(title, body);
 }
 
-/** Loud, attention-grabbing alarm — repeats a fuller bell several times. Use for goal completion. */
-export function playAlarm(repeats = 4, intervalMs = 700) {
-  for (let i = 0; i < repeats; i++) {
-    setTimeout(() => playChime(0.85), i * intervalMs);
-  }
+/** Break complete: play selected break sound + show notification. */
+export function notifyBreakComplete(
+  title = "Break finished. Time to continue.",
+  body = "Your break is over.",
+) {
+  playSlot("breakComplete");
+  showBrowserNotification(title, body);
 }
 
-/** Goal completion: louder alarm + browser notification. */
+/** Goal completion: stronger, repeated goal sound + browser notification. */
 export function notifyGoalComplete(title: string, body: string) {
-  playAlarm();
+  playSlot("goalComplete", { strong: true });
   showBrowserNotification(title, body);
 }
