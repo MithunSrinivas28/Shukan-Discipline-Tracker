@@ -5,6 +5,7 @@ import StreakGrid from "@/components/StreakGrid";
 import FocusSignature, { buildTraits } from "@/components/FocusSignature";
 import AvatarUpload from "@/components/AvatarUpload";
 import Badges from "@/components/Badges";
+import SoundSettings from "@/components/SoundSettings";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAnalyticsStore,
@@ -180,6 +181,11 @@ export default function Profile() {
         longestStreak={longestStreak}
         dailyStudyHistory={dailyStudyHistory}
       />
+
+      {/* Sound settings */}
+      <SoundSettings />
+
+
 
 
 

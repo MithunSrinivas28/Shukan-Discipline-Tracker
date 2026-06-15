@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { IntervalType, TimerPhase } from "@/hooks/useTimerState";
-import { ensureNotificationPermission, notifyStudyEvent } from "@/lib/notifications";
+import { ensureNotificationPermission, notifyStudyEvent, notifyBreakComplete } from "@/lib/notifications";
 
 interface TimerModeProps {
   userId: string;
@@ -64,6 +64,8 @@ export default function TimerMode({
             onSessionLogged();
             loggedRef.current = false;
           });
+      } else if (phase === "break") {
+        notifyBreakComplete("Break finished. Time to continue.", "Back to focus.");
       }
       onCompleteSession();
     }
