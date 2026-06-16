@@ -238,6 +238,63 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_sessions: {
+        Row: {
+          category_scores: Json
+          completed_at: string | null
+          created_at: string
+          custom_topic: string | null
+          difficulty: string
+          domain: string
+          duration_minutes: number
+          id: string
+          improvements: Json
+          metadata: Json
+          overall_score: number | null
+          status: string
+          strengths: Json
+          transcript: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_scores?: Json
+          completed_at?: string | null
+          created_at?: string
+          custom_topic?: string | null
+          difficulty: string
+          domain: string
+          duration_minutes: number
+          id?: string
+          improvements?: Json
+          metadata?: Json
+          overall_score?: number | null
+          status?: string
+          strengths?: Json
+          transcript?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_scores?: Json
+          completed_at?: string | null
+          created_at?: string
+          custom_topic?: string | null
+          difficulty?: string
+          domain?: string
+          duration_minutes?: number
+          id?: string
+          improvements?: Json
+          metadata?: Json
+          overall_score?: number | null
+          status?: string
+          strengths?: Json
+          transcript?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null

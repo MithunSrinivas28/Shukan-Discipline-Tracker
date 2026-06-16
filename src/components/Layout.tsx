@@ -78,6 +78,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   Vault
                 </Link>
                 <Link
+                  to="/interview-lab"
+                  data-active={isActive("/interview-lab")}
+                  className={`nav-underline transition-colors hover:text-foreground ${
+                    isActive("/interview-lab") ? "text-foreground font-medium" : "text-muted-foreground"
+                  }`}
+                >
+                  Interview Lab
+                </Link>
+                <Link
                   to="/profile"
                   data-active={isActive("/profile")}
                   className={`nav-underline transition-colors hover:text-foreground ${
