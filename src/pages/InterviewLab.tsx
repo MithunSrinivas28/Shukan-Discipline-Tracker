@@ -7,10 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Mic, MicOff, StopCircle, ArrowLeft, Loader2, Volume2 } from "lucide-react";
+import { Mic, MicOff, StopCircle, ArrowLeft, Loader2, Volume2, Upload, FileText } from "lucide-react";
 import { speak, stopSpeaking, createRecognizer, speechSupported } from "@/lib/speech";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { extractResumeText, emptyResume, type ResumeData } from "@/lib/resumeParser";
+import { ResumePreview } from "@/components/ResumePreview";
 
 const DOMAINS = [
   "Software Engineering",
