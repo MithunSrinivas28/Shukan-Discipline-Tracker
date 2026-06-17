@@ -40,6 +40,9 @@ type InterviewType = "standard" | "resume";
 export default function InterviewLab() {
   const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("setup");
+  const [interviewType, setInterviewType] = useState<InterviewType>("standard");
+  const [resumeData, setResumeData] = useState<ResumeData>(emptyResume);
+  const [parsingResume, setParsingResume] = useState(false);
 
   const [domain, setDomain] = useState(DOMAINS[0]);
   const [customTopic, setCustomTopic] = useState("");
