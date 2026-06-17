@@ -249,8 +249,10 @@ export type Database = {
           duration_minutes: number
           id: string
           improvements: Json
+          interview_type: string
           metadata: Json
           overall_score: number | null
+          resume_data: Json
           status: string
           strengths: Json
           transcript: Json
@@ -267,8 +269,10 @@ export type Database = {
           duration_minutes: number
           id?: string
           improvements?: Json
+          interview_type?: string
           metadata?: Json
           overall_score?: number | null
+          resume_data?: Json
           status?: string
           strengths?: Json
           transcript?: Json
@@ -285,8 +289,10 @@ export type Database = {
           duration_minutes?: number
           id?: string
           improvements?: Json
+          interview_type?: string
           metadata?: Json
           overall_score?: number | null
+          resume_data?: Json
           status?: string
           strengths?: Json
           transcript?: Json

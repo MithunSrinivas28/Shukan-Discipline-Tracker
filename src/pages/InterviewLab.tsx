@@ -7,10 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Mic, MicOff, StopCircle, ArrowLeft, Loader2, Volume2 } from "lucide-react";
+import { Mic, MicOff, StopCircle, ArrowLeft, Loader2, Volume2, Upload, FileText } from "lucide-react";
 import { speak, stopSpeaking, createRecognizer, speechSupported } from "@/lib/speech";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { extractResumeText, emptyResume, type ResumeData } from "@/lib/resumeParser";
+import { ResumePreview } from "@/components/ResumePreview";
 
 const DOMAINS = [
   "Software Engineering",
@@ -32,11 +34,15 @@ const DURATIONS = [10, 20, 30];
 
 type Turn = { role: "interviewer" | "candidate"; text: string };
 type QEval = { score: number; feedback: string; betterAnswer: string };
-type Phase = "setup" | "interview" | "report" | "history" | "view";
+type Phase = "setup" | "resume_upload" | "resume_review" | "interview" | "report" | "history" | "view";
+type InterviewType = "standard" | "resume";
 
 export default function InterviewLab() {
   const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("setup");
+  const [interviewType, setInterviewType] = useState<InterviewType>("standard");
+  const [resumeData, setResumeData] = useState<ResumeData>(emptyResume);
+  const [parsingResume, setParsingResume] = useState(false);
 
   const [domain, setDomain] = useState(DOMAINS[0]);
   const [customTopic, setCustomTopic] = useState("");
@@ -102,6 +108,8 @@ export default function InterviewLab() {
           duration_minutes: duration,
           status: "in_progress",
           transcript: [],
+          interview_type: interviewType,
+          resume_data: interviewType === "resume" ? (resumeData as any) : {},
         })
         .select()
         .single();
@@ -113,6 +121,8 @@ export default function InterviewLab() {
         domain,
         customTopic,
         difficulty,
+        interviewType,
+        resumeData: interviewType === "resume" ? resumeData : undefined,
       });
       const firstQ = res.question;
       const initial: Turn[] = [{ role: "interviewer", text: firstQ }];
@@ -190,6 +200,8 @@ export default function InterviewLab() {
           difficulty,
           lastQuestion: lastQ,
           lastAnswer: fullAnswer,
+          interviewType,
+          resumeData: interviewType === "resume" ? resumeData : undefined,
         }),
         invokeAI({
           action: "next",
@@ -197,6 +209,8 @@ export default function InterviewLab() {
           customTopic,
           difficulty,
           transcript: newTranscript,
+          interviewType,
+          resumeData: interviewType === "resume" ? resumeData : undefined,
         }),
       ]);
       setEvals((prev) => ({ ...prev, [qIndex]: evalRes }));
@@ -230,6 +244,8 @@ export default function InterviewLab() {
         customTopic,
         difficulty,
         transcript,
+        interviewType,
+        resumeData: interviewType === "resume" ? resumeData : undefined,
       });
       setReport(rep);
       if (sessionId) {
@@ -270,6 +286,27 @@ export default function InterviewLab() {
     setPhase("history");
   }
 
+  async function handleResumeFile(file: File) {
+    setParsingResume(true);
+    try {
+      const text = await extractResumeText(file);
+      if (!text || text.length < 30) {
+        toast.error("Couldn't read meaningful text from this file.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("interview-ai", {
+        body: { action: "parse_resume", resumeText: text },
+      });
+      if (error) throw error;
+      setResumeData({ ...emptyResume, ...data });
+      setPhase("resume_review");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to parse resume");
+    } finally {
+      setParsingResume(false);
+    }
+  }
+
   const elapsedSec = startedAt ? Math.floor((now - startedAt) / 1000) : 0;
   const totalSec = duration * 60;
   const remaining = Math.max(0, totalSec - elapsedSec);
@@ -302,6 +339,25 @@ export default function InterviewLab() {
         </div>
 
         <Card className="p-8 space-y-8 border-border/60">
+          <Field label="Interview type">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setInterviewType("standard")}
+                className={`text-left p-4 rounded-lg border transition ${interviewType === "standard" ? "border-foreground bg-muted/30" : "border-border/60 hover:border-foreground/40"}`}
+              >
+                <p className="font-medium font-body">Standard</p>
+                <p className="text-xs text-muted-foreground mt-1">Topic-based interview on a domain you pick.</p>
+              </button>
+              <button
+                onClick={() => setInterviewType("resume")}
+                className={`text-left p-4 rounded-lg border transition ${interviewType === "resume" ? "border-foreground bg-muted/30" : "border-border/60 hover:border-foreground/40"}`}
+              >
+                <p className="font-medium font-body">Resume Interview</p>
+                <p className="text-xs text-muted-foreground mt-1">Upload your resume — questions drawn from your real projects and skills.</p>
+              </button>
+            </div>
+          </Field>
+
           <Field label="Domain">
             <div className="flex flex-wrap gap-2">
               {DOMAINS.map((d) => (
@@ -340,14 +396,77 @@ export default function InterviewLab() {
             </p>
           )}
 
-          <Button size="lg" className="w-full" onClick={startInterview} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Begin Interview
-          </Button>
+          {interviewType === "resume" ? (
+            <Button size="lg" className="w-full" onClick={() => setPhase("resume_upload")} disabled={loading}>
+              <FileText className="h-4 w-4 mr-2" /> Upload Resume
+            </Button>
+          ) : (
+            <Button size="lg" className="w-full" onClick={startInterview} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Begin Interview
+            </Button>
+          )}
         </Card>
       </div>
     );
   }
+
+  if (phase === "resume_upload") {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-12">
+        <Button variant="ghost" onClick={() => setPhase("setup")} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </Button>
+        <h1 className="font-serif text-3xl mb-2">Upload your resume</h1>
+        <p className="text-muted-foreground font-body mb-8">PDF or DOCX. We'll extract your projects, skills, experience, and certifications.</p>
+        <label className="block border-2 border-dashed border-border/60 rounded-lg p-12 text-center cursor-pointer hover:border-foreground/40 transition">
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt,application/pdf"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleResumeFile(f);
+            }}
+            disabled={parsingResume}
+          />
+          {parsingResume ? (
+            <div className="flex flex-col items-center gap-3 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="font-body text-sm">Parsing resume…</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 text-muted-foreground">
+              <Upload className="h-6 w-6" />
+              <span className="font-body">Click to choose a file</span>
+              <span className="text-xs">PDF · DOCX · TXT</span>
+            </div>
+          )}
+        </label>
+      </div>
+    );
+  }
+
+  if (phase === "resume_review") {
+    return (
+      <div className="container mx-auto max-w-3xl px-4 py-12">
+        <Button variant="ghost" onClick={() => setPhase("resume_upload")} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Re-upload
+        </Button>
+        <h1 className="font-serif text-3xl mb-2">Review extracted information</h1>
+        <p className="text-muted-foreground font-body mb-6">Edit anything that isn't right — the interviewer will use this to craft questions.</p>
+        <ResumePreview data={resumeData} onChange={setResumeData} />
+        <div className="mt-6 flex gap-3">
+          <Button variant="outline" onClick={() => setPhase("setup")}>Back to settings</Button>
+          <Button className="flex-1" size="lg" onClick={startInterview} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Begin Resume Interview
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
 
   if (phase === "interview") {
     const lastTurn = transcript[transcript.length - 1];
@@ -520,13 +639,15 @@ function ReportView({ report, transcript, evals, onBack }: { report: any; transc
       <Card className="p-6 mb-6">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">Categories</p>
         <div className="space-y-3">
-          {[
+          {([
             ["Technical Knowledge", cats.technicalKnowledge],
             ["Communication", cats.communication],
             ["Confidence", cats.confidence],
             ["Problem Solving", cats.problemSolving],
             ["Depth of Understanding", cats.depthOfUnderstanding],
-          ].map(([label, val]) => (
+            ...(cats.projectUnderstanding != null ? [["Project Understanding", cats.projectUnderstanding]] : []),
+            ...(cats.resumeAuthenticity != null ? [["Resume Authenticity", cats.resumeAuthenticity]] : []),
+          ] as [string, number | undefined][]).map(([label, val]) => (
             <div key={label as string}>
               <div className="flex justify-between text-sm font-body mb-1">
                 <span>{label}</span>
