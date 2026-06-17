@@ -34,7 +34,8 @@ const DURATIONS = [10, 20, 30];
 
 type Turn = { role: "interviewer" | "candidate"; text: string };
 type QEval = { score: number; feedback: string; betterAnswer: string };
-type Phase = "setup" | "interview" | "report" | "history" | "view";
+type Phase = "setup" | "resume_upload" | "resume_review" | "interview" | "report" | "history" | "view";
+type InterviewType = "standard" | "resume";
 
 export default function InterviewLab() {
   const { user } = useAuth();
