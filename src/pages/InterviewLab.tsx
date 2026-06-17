@@ -286,6 +286,27 @@ export default function InterviewLab() {
     setPhase("history");
   }
 
+  async function handleResumeFile(file: File) {
+    setParsingResume(true);
+    try {
+      const text = await extractResumeText(file);
+      if (!text || text.length < 30) {
+        toast.error("Couldn't read meaningful text from this file.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("interview-ai", {
+        body: { action: "parse_resume", resumeText: text },
+      });
+      if (error) throw error;
+      setResumeData({ ...emptyResume, ...data });
+      setPhase("resume_review");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to parse resume");
+    } finally {
+      setParsingResume(false);
+    }
+  }
+
   const elapsedSec = startedAt ? Math.floor((now - startedAt) / 1000) : 0;
   const totalSec = duration * 60;
   const remaining = Math.max(0, totalSec - elapsedSec);
