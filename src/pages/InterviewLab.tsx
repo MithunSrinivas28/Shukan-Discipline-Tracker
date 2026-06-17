@@ -396,14 +396,77 @@ export default function InterviewLab() {
             </p>
           )}
 
-          <Button size="lg" className="w-full" onClick={startInterview} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Begin Interview
-          </Button>
+          {interviewType === "resume" ? (
+            <Button size="lg" className="w-full" onClick={() => setPhase("resume_upload")} disabled={loading}>
+              <FileText className="h-4 w-4 mr-2" /> Upload Resume
+            </Button>
+          ) : (
+            <Button size="lg" className="w-full" onClick={startInterview} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Begin Interview
+            </Button>
+          )}
         </Card>
       </div>
     );
   }
+
+  if (phase === "resume_upload") {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-12">
+        <Button variant="ghost" onClick={() => setPhase("setup")} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </Button>
+        <h1 className="font-serif text-3xl mb-2">Upload your resume</h1>
+        <p className="text-muted-foreground font-body mb-8">PDF or DOCX. We'll extract your projects, skills, experience, and certifications.</p>
+        <label className="block border-2 border-dashed border-border/60 rounded-lg p-12 text-center cursor-pointer hover:border-foreground/40 transition">
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt,application/pdf"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleResumeFile(f);
+            }}
+            disabled={parsingResume}
+          />
+          {parsingResume ? (
+            <div className="flex flex-col items-center gap-3 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="font-body text-sm">Parsing resume…</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 text-muted-foreground">
+              <Upload className="h-6 w-6" />
+              <span className="font-body">Click to choose a file</span>
+              <span className="text-xs">PDF · DOCX · TXT</span>
+            </div>
+          )}
+        </label>
+      </div>
+    );
+  }
+
+  if (phase === "resume_review") {
+    return (
+      <div className="container mx-auto max-w-3xl px-4 py-12">
+        <Button variant="ghost" onClick={() => setPhase("resume_upload")} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Re-upload
+        </Button>
+        <h1 className="font-serif text-3xl mb-2">Review extracted information</h1>
+        <p className="text-muted-foreground font-body mb-6">Edit anything that isn't right — the interviewer will use this to craft questions.</p>
+        <ResumePreview data={resumeData} onChange={setResumeData} />
+        <div className="mt-6 flex gap-3">
+          <Button variant="outline" onClick={() => setPhase("setup")}>Back to settings</Button>
+          <Button className="flex-1" size="lg" onClick={startInterview} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Begin Resume Interview
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
 
   if (phase === "interview") {
     const lastTurn = transcript[transcript.length - 1];
