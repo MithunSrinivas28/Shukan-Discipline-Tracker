@@ -108,6 +108,8 @@ export default function InterviewLab() {
           duration_minutes: duration,
           status: "in_progress",
           transcript: [],
+          interview_type: interviewType,
+          resume_data: interviewType === "resume" ? (resumeData as any) : {},
         })
         .select()
         .single();
@@ -119,6 +121,8 @@ export default function InterviewLab() {
         domain,
         customTopic,
         difficulty,
+        interviewType,
+        resumeData: interviewType === "resume" ? resumeData : undefined,
       });
       const firstQ = res.question;
       const initial: Turn[] = [{ role: "interviewer", text: firstQ }];
