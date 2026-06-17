@@ -244,6 +244,8 @@ export default function InterviewLab() {
         customTopic,
         difficulty,
         transcript,
+        interviewType,
+        resumeData: interviewType === "resume" ? resumeData : undefined,
       });
       setReport(rep);
       if (sessionId) {
