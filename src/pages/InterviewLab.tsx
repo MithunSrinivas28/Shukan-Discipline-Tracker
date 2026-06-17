@@ -639,13 +639,15 @@ function ReportView({ report, transcript, evals, onBack }: { report: any; transc
       <Card className="p-6 mb-6">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">Categories</p>
         <div className="space-y-3">
-          {[
+          {([
             ["Technical Knowledge", cats.technicalKnowledge],
             ["Communication", cats.communication],
             ["Confidence", cats.confidence],
             ["Problem Solving", cats.problemSolving],
             ["Depth of Understanding", cats.depthOfUnderstanding],
-          ].map(([label, val]) => (
+            ...(cats.projectUnderstanding != null ? [["Project Understanding", cats.projectUnderstanding]] : []),
+            ...(cats.resumeAuthenticity != null ? [["Resume Authenticity", cats.resumeAuthenticity]] : []),
+          ] as [string, number | undefined][]).map(([label, val]) => (
             <div key={label as string}>
               <div className="flex justify-between text-sm font-body mb-1">
                 <span>{label}</span>
