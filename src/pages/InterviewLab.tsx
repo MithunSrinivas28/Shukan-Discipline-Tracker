@@ -200,6 +200,8 @@ export default function InterviewLab() {
           difficulty,
           lastQuestion: lastQ,
           lastAnswer: fullAnswer,
+          interviewType,
+          resumeData: interviewType === "resume" ? resumeData : undefined,
         }),
         invokeAI({
           action: "next",
@@ -207,6 +209,8 @@ export default function InterviewLab() {
           customTopic,
           difficulty,
           transcript: newTranscript,
+          interviewType,
+          resumeData: interviewType === "resume" ? resumeData : undefined,
         }),
       ]);
       setEvals((prev) => ({ ...prev, [qIndex]: evalRes }));
