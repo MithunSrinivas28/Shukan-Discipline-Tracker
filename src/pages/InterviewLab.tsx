@@ -339,6 +339,25 @@ export default function InterviewLab() {
         </div>
 
         <Card className="p-8 space-y-8 border-border/60">
+          <Field label="Interview type">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setInterviewType("standard")}
+                className={`text-left p-4 rounded-lg border transition ${interviewType === "standard" ? "border-foreground bg-muted/30" : "border-border/60 hover:border-foreground/40"}`}
+              >
+                <p className="font-medium font-body">Standard</p>
+                <p className="text-xs text-muted-foreground mt-1">Topic-based interview on a domain you pick.</p>
+              </button>
+              <button
+                onClick={() => setInterviewType("resume")}
+                className={`text-left p-4 rounded-lg border transition ${interviewType === "resume" ? "border-foreground bg-muted/30" : "border-border/60 hover:border-foreground/40"}`}
+              >
+                <p className="font-medium font-body">Resume Interview</p>
+                <p className="text-xs text-muted-foreground mt-1">Upload your resume — questions drawn from your real projects and skills.</p>
+              </button>
+            </div>
+          </Field>
+
           <Field label="Domain">
             <div className="flex flex-wrap gap-2">
               {DOMAINS.map((d) => (
