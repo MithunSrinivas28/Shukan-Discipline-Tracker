@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Music, Pause, Play, ChevronDown, ChevronUp } from "lucide-react";
 
 const DEFAULT_PLAYLIST_URI = "spotify:playlist:0vvXsWCC9xrXsKd4FyS8kM"; // Lo-fi beats
+const SPOTIFY_PLAYLIST_URL = "https://open.spotify.com/playlist/0vvXsWCC9xrXsKd4FyS8kM";
 
 interface SpotifyMiniPlayerProps {
   /** When this transitions from >0 to 0, auto-pause after 10s */
@@ -12,16 +13,20 @@ export default function SpotifyMiniPlayer({ cooldown = -1 }: SpotifyMiniPlayerPr
   const [collapsed, setCollapsed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [trackName, setTrackName] = useState("Lo-fi Focus Beats");
+  const [loaded, setLoaded] = useState(false);
   const embedRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<any>(null);
   const prevCooldownRef = useRef(cooldown);
   const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
-  // Load Spotify IFrame API
-  useEffect(() => {
+  const loadSpotify = useCallback(() => {
+    if (loaded || scriptRef.current) return;
+    setLoaded(true);
     const script = document.createElement("script");
     script.src = "https://open.spotify.com/embed/iframe-api/v1";
     script.async = true;
+    scriptRef.current = script;
     document.body.appendChild(script);
 
     (window as any).onSpotifyIframeApiReady = (IFrameAPI: any) => {
@@ -43,9 +48,11 @@ export default function SpotifyMiniPlayer({ cooldown = -1 }: SpotifyMiniPlayerPr
       };
       IFrameAPI.createController(embedRef.current, options, callback);
     };
+  }, [loaded]);
 
+  useEffect(() => {
     return () => {
-      script.remove();
+      scriptRef.current?.remove();
       delete (window as any).onSpotifyIframeApiReady;
     };
   }, []);
@@ -64,8 +71,13 @@ export default function SpotifyMiniPlayer({ cooldown = -1 }: SpotifyMiniPlayerPr
   }, [cooldown, isPlaying]);
 
   const handleTogglePlay = useCallback(() => {
-    controllerRef.current?.togglePlay();
-  }, []);
+    if (!controllerRef.current) {
+      loadSpotify();
+      window.open(SPOTIFY_PLAYLIST_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
+    controllerRef.current.togglePlay();
+  }, [loadSpotify]);
 
   return (
     <div className="fixed bottom-6 left-6 z-50 font-body">
@@ -103,8 +115,8 @@ export default function SpotifyMiniPlayer({ cooldown = -1 }: SpotifyMiniPlayerPr
               </button>
             </div>
           </div>
-          {/* Hidden Spotify embed */}
-          <div ref={embedRef} className="h-0 overflow-hidden" />
+          {/* Hidden Spotify controller target, loaded only after a user presses play. */}
+          <div ref={embedRef} className="sr-only h-0 w-0 overflow-hidden" aria-hidden="true" />
           {/* Session complete message */}
           {cooldown === 0 && prevCooldownRef.current === 0 && (
             <div className="px-3 py-1.5 text-[10px] text-muted-foreground text-center border-t border-border">
