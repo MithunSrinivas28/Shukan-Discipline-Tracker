@@ -64,10 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const applySession = async (nextSession: Session | null) => {
-      if (nextSession?.user) {
-        await ensureProfile(nextSession.user);
-      }
+    const applySession = (nextSession: Session | null) => {
       if (!mounted) return;
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
@@ -75,11 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      void applySession(nextSession);
+      applySession(nextSession);
+      if (nextSession?.user) {
+        setTimeout(() => {
+          void ensureProfile(nextSession.user);
+        }, 0);
+      }
     });
 
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      void applySession(currentSession);
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      if (currentSession?.user) {
+        await ensureProfile(currentSession.user);
+      }
+      applySession(currentSession);
     });
 
     return () => {
