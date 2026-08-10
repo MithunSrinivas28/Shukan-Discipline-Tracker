@@ -15,6 +15,7 @@ import InterviewLab from "./pages/InterviewLab";
 import NotFound from "./pages/NotFound";
 import FocusRoom from "./pages/FocusRoom";
 import { STUDY_TOGETHER_ENABLED } from "@/lib/features";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -29,13 +30,13 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/vault" element={<Vault />} />
-              <Route path="/interview-lab" element={<InterviewLab />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/vault" element={<ProtectedRoute><Vault /></ProtectedRoute>} />
+              <Route path="/interview-lab" element={<ProtectedRoute><InterviewLab /></ProtectedRoute>} />
               {STUDY_TOGETHER_ENABLED && (
-                <Route path="/focus-room/:roomId" element={<FocusRoom />} />
+                <Route path="/focus-room/:roomId" element={<ProtectedRoute><FocusRoom /></ProtectedRoute>} />
               )}
               <Route path="*" element={<NotFound />} />
             </Routes>
