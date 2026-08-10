@@ -79,26 +79,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const restoreAuth = async () => {
-      const { data: { user: verifiedUser }, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
-        applySession(null, signOutError ? `${userError.message}; ${signOutError.message}` : userError.message);
+      const { data: { session: storedSession }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        applySession(null, sessionError.message);
         return;
       }
 
-      if (!verifiedUser) {
+      if (!storedSession) {
         applySession(null);
         return;
       }
 
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !currentSession) {
-        applySession(null, sessionError?.message ?? "The authenticated session could not be restored.");
+      const { data: { user: verifiedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !verifiedUser) {
+        const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+        const reason = userError?.message ?? "The authenticated user could not be verified.";
+        applySession(null, signOutError ? `${reason}; ${signOutError.message}` : reason);
         return;
       }
 
       const profileError = await ensureProfile(verifiedUser);
-      applySession(currentSession, profileError ? `Profile initialization failed: ${profileError}` : null);
+      applySession(storedSession, profileError ? `Profile initialization failed: ${profileError}` : null);
     };
 
     void restoreAuth().catch((error: unknown) => {
