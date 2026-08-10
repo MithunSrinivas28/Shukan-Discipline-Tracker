@@ -6,9 +6,10 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<{ error: string | null }>;
+  initializationError: string | null;
+  signUp: (email: string, password: string, username: string) => Promise<{ error: string | null; requiresEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,31 +61,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
-    const applySession = (nextSession: Session | null) => {
+    const applySession = (nextSession: Session | null, error: string | null = null) => {
       if (!mounted) return;
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
+      setInitializationError(error);
       setLoading(false);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       applySession(nextSession);
-      if (nextSession?.user) {
-        setTimeout(() => {
-          void ensureProfile(nextSession.user);
-        }, 0);
-      }
     });
 
-    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
-      if (currentSession?.user) {
-        await ensureProfile(currentSession.user);
+    const restoreAuth = async () => {
+      const { data: { user: verifiedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+        applySession(null, signOutError ? `${userError.message}; ${signOutError.message}` : userError.message);
+        return;
       }
-      applySession(currentSession);
+
+      if (!verifiedUser) {
+        applySession(null);
+        return;
+      }
+
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !currentSession) {
+        applySession(null, sessionError?.message ?? "The authenticated session could not be restored.");
+        return;
+      }
+
+      const profileError = await ensureProfile(verifiedUser);
+      applySession(currentSession, profileError ? `Profile initialization failed: ${profileError}` : null);
+    };
+
+    void restoreAuth().catch((error: unknown) => {
+      applySession(null, error instanceof Error ? error.message : "Authentication initialization failed.");
     });
 
     return () => {
@@ -102,12 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: window.location.origin,
       },
     });
-    if (error) return { error: error.message };
+    if (error) return { error: error.message, requiresEmailConfirmation: false };
     if (data.session && data.user) {
       const profileError = await ensureProfile(data.user, username);
-      if (profileError) return { error: profileError };
+      if (profileError) return { error: `Profile initialization failed: ${profileError}`, requiresEmailConfirmation: false };
     }
-    return { error: null };
+    return { error: null, requiresEmailConfirmation: data.session === null };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -121,11 +139,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    return { error: error?.message ?? null };
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, loading, initializationError, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

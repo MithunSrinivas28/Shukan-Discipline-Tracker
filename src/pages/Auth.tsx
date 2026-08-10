@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,13 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { user, loading: authLoading, initializationError, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const mapAuthError = (error: string): string => {
-    const e = error.toLowerCase();
-    if (e.includes("rate") || e.includes("too many")) return "Too many attempts. Please try again later.";
-    if (e.includes("confirm")) return "Please check your email to confirm your account.";
-    if (e.includes("network") || e.includes("fetch")) return "Network error. Please check your connection.";
-    if (isLogin) return "Invalid email or password.";
-    return "Unable to complete sign-up. Please try again.";
-  };
+  useEffect(() => {
+    if (!authLoading && user) navigate("/dashboard", { replace: true });
+  }, [authLoading, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +27,7 @@ export default function Auth() {
     if (isLogin) {
       const { error } = await signIn(email, password);
       if (error) {
-        toast({ title: "Sign in failed", description: mapAuthError(error), variant: "destructive" });
+        toast({ title: "Sign in failed", description: error, variant: "destructive" });
       } else {
         navigate("/dashboard");
       }
@@ -42,14 +37,13 @@ export default function Auth() {
         setLoading(false);
         return;
       }
-      const { error } = await signUp(email, password, username.trim());
+      const { error, requiresEmailConfirmation } = await signUp(email, password, username.trim());
       if (error) {
-        toast({ title: "Sign up failed", description: mapAuthError(error), variant: "destructive" });
+        toast({ title: "Sign up failed", description: error, variant: "destructive" });
+      } else if (requiresEmailConfirmation) {
+        toast({ title: "Check your email", description: "Open the confirmation link to activate your account." });
       } else {
-        toast({
-          title: "Check your email",
-          description: "If this email is available, we've sent a confirmation link.",
-        });
+        navigate("/dashboard");
       }
     }
     setLoading(false);
@@ -65,6 +59,12 @@ export default function Auth() {
           {isLogin ? "Continue your study streak" : "Track your hours, build discipline"}
         </p>
       </div>
+
+      {initializationError && (
+        <div role="alert" className="mb-6 border-l-2 border-destructive pl-3 text-sm text-destructive font-body">
+          Authentication error: {initializationError}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {!isLogin && (
@@ -109,21 +109,23 @@ export default function Auth() {
         </div>
         <Button
           type="submit"
-          disabled={loading}
+          disabled={loading || authLoading}
           className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-body"
         >
-          {loading ? "..." : isLogin ? "Sign In" : "Create Account"}
+          {loading || authLoading ? "..." : isLogin ? "Sign In" : "Create Account"}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground mt-6 font-body">
         {isLogin ? "No account yet?" : "Already have an account?"}{" "}
-        <button
+        <Button
+          type="button"
+          variant="link"
           onClick={() => setIsLogin(!isLogin)}
-          className="text-primary hover:underline font-medium"
+          className="h-auto p-0 font-medium"
         >
           {isLogin ? "Register" : "Sign In"}
-        </button>
+        </Button>
       </p>
     </div>
   );

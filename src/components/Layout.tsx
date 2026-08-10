@@ -9,6 +9,8 @@ import TodoPanel from "@/components/TodoPanel";
 import NotificationBell from "@/components/NotificationBell";
 import { useTimerState } from "@/hooks/useTimerState";
 import { STUDY_TOGETHER_ENABLED } from "@/lib/features";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -31,11 +33,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [dark, toggleDark] = useDarkMode();
   const { mood, setMood } = useMood();
   const timer = useTimerState();
+  const { toast } = useToast();
 
   const isActive = (path: string) => location.pathname === path;
 
   // Show floating timer whenever a session is active or paused (across all routes)
   const showFloatingTimer = timer.phase !== "idle" || timer.elapsed > 0;
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) toast({ title: "Logout failed", description: error, variant: "destructive" });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -95,12 +103,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 >
                   Profile
                 </Link>
-                <button
-                  onClick={signOut}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleSignOut}
+                  className="h-auto p-0 text-muted-foreground hover:text-foreground"
                 >
                   Logout
-                </button>
+                </Button>
               </>
             ) : (
               <Link
