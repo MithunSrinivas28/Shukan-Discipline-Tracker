@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ensureNotificationPermission, notifyStudyEvent } from "@/lib/notifications";
+import FlipClock from "@/components/timer/FlipClock";
+import TimerStage from "@/components/timer/TimerStage";
 
 interface StopwatchModeProps {
   userId: string;
@@ -87,46 +89,49 @@ export default function StopwatchMode({
 
   const hasStarted = phase !== "idle" || elapsed > 0;
 
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  const display = `${h.toString().padStart(2, "0")}:${m
+    .toString()
+    .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+
+  const controls = !hasStarted ? (
+    <Button onClick={handleStart} className="font-body px-10 btn-press">
+      Start
+    </Button>
+  ) : isRunning ? (
+    <>
+      <Button onClick={onPause} variant="outline" className="font-body px-8 btn-press">
+        Pause
+      </Button>
+      <Button onClick={handleStop} variant="secondary" className="font-body px-8 btn-press">
+        Stop & Save
+      </Button>
+    </>
+  ) : (
+    <>
+      <Button onClick={handleStart} className="font-body px-8 btn-press">
+        Resume
+      </Button>
+      <Button onClick={handleStop} variant="secondary" className="font-body px-8 btn-press">
+        Stop & Save
+      </Button>
+    </>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Display */}
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground font-body mb-2 uppercase tracking-wide">
-          {isRunning ? "Studying..." : hasStarted ? "Paused" : "Ready"}
-        </p>
-        <p className="text-6xl font-serif font-bold text-foreground tabular-nums tracking-tight">
-          {formatElapsed(elapsed)}
-        </p>
-      </div>
-
-      {/* Controls */}
-      <div className="flex justify-center gap-3">
-        {!hasStarted ? (
-          <Button onClick={handleStart} className="font-body px-8">
-            Start Studying
-          </Button>
-        ) : isRunning ? (
-          <>
-            <Button onClick={onPause} variant="outline" className="font-body px-6">
-              Pause
-            </Button>
-            <Button onClick={handleStop} variant="secondary" className="font-body px-6">
-              Stop & Save
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button onClick={handleStart} className="font-body px-6">
-              Resume
-            </Button>
-            <Button onClick={handleStop} variant="secondary" className="font-body px-6">
-              Stop & Save
-            </Button>
-          </>
-        )}
-      </div>
-
-      {/* Float Timer */}
+    <TimerStage
+      clock={
+        <FlipClock
+          time={display}
+          label={isRunning ? "Studying" : hasStarted ? "Paused" : "Ready"}
+          size="md"
+          running={isRunning}
+        />
+      }
+      controls={controls}
+    >
       {hasStarted && (
         <div className="flex justify-center">
           <button
@@ -137,6 +142,7 @@ export default function StopwatchMode({
           </button>
         </div>
       )}
-    </div>
+    </TimerStage>
   );
 }
+
