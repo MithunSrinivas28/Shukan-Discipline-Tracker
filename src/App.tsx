@@ -13,7 +13,6 @@ import Profile from "./pages/Profile";
 import Vault from "./pages/Vault";
 import InterviewLab from "./pages/InterviewLab";
 import NotFound from "./pages/NotFound";
-import FlipPreview from "./pages/FlipPreview";
 import FocusRoom from "./pages/FocusRoom";
 import { STUDY_TOGETHER_ENABLED } from "@/lib/features";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -39,7 +38,6 @@ const App = () => (
               {STUDY_TOGETHER_ENABLED && (
                 <Route path="/focus-room/:roomId" element={<ProtectedRoute><FocusRoom /></ProtectedRoute>} />
               )}
-              <Route path="/__flip" element={<FlipPreview />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
