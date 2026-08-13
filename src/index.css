@@ -384,3 +384,46 @@
   .stagger-5 { animation-delay: 300ms; }
   .stagger-6 { animation-delay: 360ms; }
 }
+
+/* ===== Flip clock (premium desk clock theme) ===== */
+.flip-panel {
+  perspective: 700px;
+  transform-style: preserve-3d;
+}
+.flip-num {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+.flip-anim-top {
+  transform-origin: bottom center;
+  animation-name: flip-top;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.8, 0.55);
+  animation-fill-mode: forwards;
+  backface-visibility: hidden;
+}
+.flip-anim-bottom {
+  transform-origin: top center;
+  animation-name: flip-bottom;
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  animation-fill-mode: both;
+  backface-visibility: hidden;
+}
+@keyframes flip-top {
+  from { transform: rotateX(0deg); }
+  to { transform: rotateX(-90deg); }
+}
+@keyframes flip-bottom {
+  from { transform: rotateX(90deg); }
+  to { transform: rotateX(0deg); }
+}
+.flip-complete {
+  animation: flip-complete-pulse 1.6s ease-in-out infinite;
+}
+@keyframes flip-complete-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.015); filter: brightness(1.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-anim-top, .flip-anim-bottom, .flip-complete { animation: none !important; }
+}
