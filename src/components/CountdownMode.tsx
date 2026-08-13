@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { TimerPhase } from "@/hooks/useTimerState";
+import FlipClock from "@/components/timer/FlipClock";
+import TimerStage from "@/components/timer/TimerStage";
 import {
   ensureNotificationPermission,
   notifyGoalComplete,
