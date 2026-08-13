@@ -108,7 +108,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="surface p-9 hover-lift">
+        <div className="py-6 sm:py-10">
           {timer.mode === "timer" ? (
             <TimerMode
               userId={user!.id}
