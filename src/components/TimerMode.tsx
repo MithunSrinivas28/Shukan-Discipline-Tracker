@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { IntervalType, TimerPhase } from "@/hooks/useTimerState";
 import { ensureNotificationPermission, notifyStudyEvent, notifyBreakComplete } from "@/lib/notifications";
+import FlipClock from "@/components/timer/FlipClock";
+import TimerStage from "@/components/timer/TimerStage";
 
 interface TimerModeProps {
   userId: string;
@@ -73,53 +75,53 @@ export default function TimerMode({
 
   const progress = phase !== "idle" ? Math.max(0, 1 - remaining / (phase === "break" ? (intervalType === "pomodoro" ? 300 : 600) : focusDuration)) : 0;
 
-  return (
-    <div className="space-y-7 animate-fade-in">
-      {/* Interval selector — pill segmented control */}
-      <div className="flex justify-center">
-        <div className="inline-flex gap-1 p-1 rounded-full bg-muted/60 border border-border/50">
-          {(["pomodoro", "long"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => onSetIntervalType(t)}
-              disabled={isRunning}
-              className={`px-4 py-1.5 rounded-full text-xs font-body transition-all duration-300 ${
-                intervalType === t
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              } disabled:opacity-50`}
-            >
-              {t === "pomodoro" ? "25 / 5" : "50 / 10"}
-            </button>
-          ))}
-        </div>
-      </div>
+  const label = phase === "idle" ? "Ready" : phase === "focus" ? "Focus" : "Break";
+  const display = phase === "idle" ? formatTime(focusDuration) : formatTime(remaining);
 
-      {/* Timer display — hero */}
-      <div className="text-center">
-        <p className="text-[10px] text-muted-foreground font-body mb-3 uppercase tracking-[0.3em] transition-opacity">
-          {phase === "idle" ? "Ready" : phase === "focus" ? "Focus" : "Break"}
-        </p>
-        <div className="relative mx-auto inline-block">
-          {/* Ambient glow halo while focusing */}
-          {isRunning && phase === "focus" && (
-            <>
-              <div className="absolute inset-0 -m-12 rounded-full bg-primary/20 blur-3xl animate-pulse-sakura pointer-events-none" />
-              <div className="absolute inset-0 -m-6 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
-            </>
-          )}
-          <div
-            className={`relative rounded-full px-2 py-1 transition-all duration-700 ${
-              isRunning && phase === "focus" ? "animate-timer-glow" : ""
-            }`}
+  const header = (
+    <div className="flex justify-center">
+      <div className="inline-flex gap-1 p-1 rounded-full bg-muted/60 border border-border/50">
+        {(["pomodoro", "long"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => onSetIntervalType(t)}
+            disabled={isRunning}
+            className={`px-4 py-1.5 rounded-full text-xs font-body transition-all duration-300 ${
+              intervalType === t
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            } disabled:opacity-50`}
           >
-            <p className="text-7xl md:text-8xl font-serif font-bold text-foreground tabular-nums tracking-tight leading-none">
-              {phase === "idle" ? formatTime(focusDuration) : formatTime(remaining)}
-            </p>
-          </div>
-        </div>
+            {t === "pomodoro" ? "25 / 5" : "50 / 10"}
+          </button>
+        ))}
       </div>
+    </div>
+  );
 
+  const controls =
+    phase === "idle" ? (
+      <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-10 btn-press">
+        Start Focus
+      </Button>
+    ) : isRunning ? (
+      <Button onClick={onPause} variant="outline" className="font-body px-10 btn-press">
+        Pause
+      </Button>
+    ) : (
+      <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-10 btn-press">
+        Resume
+      </Button>
+    );
+
+  return (
+    <TimerStage
+      header={header}
+      clock={
+        <FlipClock time={display} label={label} size="lg" running={isRunning && phase === "focus"} />
+      }
+      controls={controls}
+    >
       {/* Progress bar */}
       {phase !== "idle" && (
         <div className="w-full h-1 bg-muted/50 rounded-full overflow-hidden">
@@ -129,23 +131,6 @@ export default function TimerMode({
           />
         </div>
       )}
-
-      {/* Controls */}
-      <div className="flex justify-center gap-3">
-        {phase === "idle" ? (
-          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-10 btn-press">
-            Start Focus
-          </Button>
-        ) : isRunning ? (
-          <Button onClick={onPause} variant="outline" className="font-body px-10 btn-press">
-            Pause
-          </Button>
-        ) : (
-          <Button onClick={() => { ensureNotificationPermission(); onStart(); }} className="font-body px-10 btn-press">
-            Resume
-          </Button>
-        )}
-      </div>
 
       {/* Float Timer */}
       {phase !== "idle" && (
@@ -163,6 +148,7 @@ export default function TimerMode({
       <p className="text-center text-xs text-muted-foreground font-body tracking-wide">
         Sessions today · <span className="font-serif font-bold text-foreground">{sessionsCompleted}</span>
       </p>
-    </div>
+    </TimerStage>
   );
 }
+
